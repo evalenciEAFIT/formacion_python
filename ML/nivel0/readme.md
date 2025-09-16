@@ -1618,6 +1618,8 @@ db_path = config["DATABASE"]["path"]
 ### Manejo de errores
 
 ```python
+import logging
+
 def dividir(a, b):
     try:
         return a / b
@@ -1627,6 +1629,8 @@ def dividir(a, b):
     except Exception as e:
         logging.error(f"Error inesperado: {e}")
         raise
+
+print(dividir(10, 0))
 ```
 
 ---
