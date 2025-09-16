@@ -21,7 +21,6 @@ Nivel 0 - nivelación
 ## 1. Cómo pasar parámetros por CLI al inicio
 
 Permitir que tu programa reciba argumentos desde la **línea de comandos (CLI)** es esencial para:
-
 - Automatización
 - Scripts reutilizables
 - Integración con otros sistemas
@@ -109,11 +108,7 @@ Tienes 30 años.
 ---
 
 ## 2. Buenas Prácticas de Programación en Python (incluyendo `main`)
-
-[Volver al índice](#-tabla-de-contenidos)
-
-### ✅ ¿Por qué importa?
-
+### ¿Por qué importa?
 - Legibilidad
 - Mantenibilidad
 - Reusabilidad
