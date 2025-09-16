@@ -1,25 +1,24 @@
 # 🐍 Curso Práctico de Python para Gestión de Datos y Machine Learning
-Nivel 0
-
+Nivel 0 - nivelación
 
 ## 📚 Tabla de Contenidos
 
-1. [📌 Cómo pasar parámetros por CLI al inicio](#-cómo-pasar-parámetros-por-cli-al-inicio)
-2. [✅ Buenas Prácticas de Programación en Python (incluyendo `main`)](#-buenas-prácticas-de-programación-en-python-incluyendo-main)
-3. [🧪 Entornos Virtuales: Definición y Justificación](#-entornos-virtuales-definición-y-justificación)
-4. [🗃️ Estructuras de Datos Básicas: Ventajas y Desventajas](#-estructuras-de-datos-básicas-ventajas-y-desventajas)
-5. [📁 Almacenamiento en Archivos Planos](#-almacenamiento-en-archivos-planos)
-6. [💾 Bases de Datos Relacionales (SQLite)](#-bases-de-datos-relacionales-sqlite)
-7. [📈 Análisis de Datos con Pandas](#-análisis-de-datos-con-pandas)
-8. [🗃️ Gestión Avanzada de Archivos](#-gestión-avanzada-de-archivos)
-9. [🧩 Ejemplo Integrado: Sistema de Tareas](#-ejemplo-integrado-sistema-de-tareas)
-10. [🤖 Preparación de Datos para Machine Learning](#-preparación-de-datos-para-machine-learning)
-11. [🧭 Bonus: Logging, Configuración y Manejo de Errores](#-bonus-logging-configuración-y-manejo-de-errores)
-12. [📥 Descarga el Proyecto Completo](#-descarga-el-proyecto-completo)
+1. [Cómo pasar parámetros por CLI al inicio](#-cómo-pasar-parámetros-por-cli-al-inicio)
+2. [Buenas Prácticas de Programación en Python (incluyendo `main`)](#-buenas-prácticas-de-programación-en-python-incluyendo-main)
+3. [Entornos Virtuales: Definición y Justificación](#-entornos-virtuales-definición-y-justificación)
+4. [Estructuras de Datos Básicas: Ventajas y Desventajas](#-estructuras-de-datos-básicas-ventajas-y-desventajas)
+5. [Almacenamiento en Archivos Planos](#-almacenamiento-en-archivos-planos)
+6. [Bases de Datos Relacionales (SQLite)](#-bases-de-datos-relacionales-sqlite)
+7. [Análisis de Datos con Pandas](#-análisis-de-datos-con-pandas)
+8. [Gestión Avanzada de Archivos](#-gestión-avanzada-de-archivos)
+9. [Ejemplo Integrado: Sistema de Tareas](#-ejemplo-integrado-sistema-de-tareas)
+10. [Preparación de Datos para Machine Learning](#-preparación-de-datos-para-machine-learning)
+11. [Bonus: Logging, Configuración y Manejo de Errores](#-bonus-logging-configuración-y-manejo-de-errores)
+12. [Descarga el Proyecto Completo](#-descarga-el-proyecto-completo)
 
 ---
 
-## 📌 1. Cómo pasar parámetros por CLI al inicio
+## 1. Cómo pasar parámetros por CLI al inicio
 
 Permitir que tu programa reciba argumentos desde la **línea de comandos (CLI)** es esencial para:
 
