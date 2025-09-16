@@ -1,7 +1,7 @@
 # 🐍 Curso Práctico de Python para Gestión de Datos y Machine Learning
 Nivel 0 - nivelación
 
-## 📚 Tabla de Contenidos
+## Tabla de Contenidos
 
 1. Cómo pasar parámetros por CLI al inicio
 2. Buenas Prácticas de Programación en Python (incluyendo `main`)
@@ -85,11 +85,7 @@ if __name__ == "__main__":
 
 ```bash
 python cli_avanzado.py -n "Carlos" -e 30 -v
-```
-
-**Salida:**
-
-```
+#Salida:
 [INFO] Modo verboso activado
 ¡Hola Carlos!
 Tienes 30 años.
