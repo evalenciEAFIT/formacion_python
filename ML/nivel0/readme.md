@@ -1,7 +1,7 @@
 # 🐍 Curso Práctico de Python para Gestión de Datos y Machine Learning
 
 ## Nivel 0 - Nivelación
-## 📚 Tabla de Contenidos
+## Tabla de Contenidos
 
 1. [Buenas Prácticas de Programación en Python (incluyendo `main`)](#-buenas-prácticas-de-programación-en-python-incluyendo-main)
 2. [Entornos Virtuales: Definición y Justificación](#-entornos-virtuales-definición-y-justificación)
@@ -16,19 +16,19 @@
 
 ---
 
-## 🧭 1. Buenas Prácticas de Programación en Python (incluyendo `main`)
+## 1. Buenas Prácticas de Programación en Python (incluyendo `main`)
 
-### ✅ ¿Por qué importa?
+### ¿Por qué importa?
 
 - Legibilidad
 - Mantenibilidad
 - Reusabilidad
 - Evitar efectos secundarios al importar
 
-### 🎯 Recomendaciones
+### Recomendaciones
 
 ```python
-# ✅ Buen ejemplo: uso de if __name__ == "__main__"
+# Buen ejemplo: uso de if __name__ == "__main__"
 def saludar(nombre):
     return f"Hola, {nombre}!"
 
@@ -40,29 +40,27 @@ if __name__ == "__main__":
     main()
 ```
 
-### 📌 Consejos Adicionales
+### Consejos Adicionales
 
-- Usa nombres descriptivos: `calcular_promedio()` > `calc()`
-- Documenta funciones con docstrings
-- Usa type hints (Python 3.5+)
-- Sigue PEP8 (herramientas: `flake8`, `black`, `isort`)
+- Usa nombres descriptivos: `calcular_promedio()` en lugar de `calc()`
+- Documenta funciones
 - Divide en módulos y paquetes cuando crezca el proyecto
 
 ---
 
-## 🧪 2. Entornos Virtuales: Definición y Justificación
+## 2. Entornos Virtuales: Definición y Justificación
 
-### ❓ ¿Qué es un entorno virtual?
+### ¿Qué es un entorno virtual?
 
 Un entorno virtual es un espacio aislado donde puedes instalar paquetes sin afectar el sistema global ni otros proyectos.
 
-### 🧩 ¿Por qué usarlo?
+### ¿Por qué usarlo?
 
 - Evita conflictos de versiones entre proyectos
 - Facilita la replicabilidad (`requirements.txt`)
 - Ideal para colaboración y despliegue
 
-### 🛠️ Cómo crear uno
+### 🛠Cómo crear uno
 
 ```bash
 # Crear entorno
@@ -84,11 +82,11 @@ pip freeze > requirements.txt
 deactivate
 ```
 
-> 💡 **Tip**: Usa `pipenv` o `poetry` para gestión avanzada de dependencias.
+> **Tip**: Usa `pipenv` o `poetry` para gestión avanzada de dependencias.
 
 ---
 
-## 🗃️ 3. Estructuras de Datos Básicas: Ventajas y Desventajas
+## 3. Estructuras de Datos Básicas: Ventajas y Desventajas
 
 | Estructura | Mutable | Ordenada | Duplicados | Uso típico | Ventajas | Desventajas |
 |------------|---------|----------|------------|------------|----------|-------------|
