@@ -5,16 +5,16 @@ Nivel 0 - nivelación
 
 1. Cómo pasar parámetros por CLI al inicio
 2. Buenas Prácticas de Programación en Python (incluyendo `main`)
-3. [Entornos Virtuales: Definición y Justificación](#-entornos-virtuales-definición-y-justificación)
-4. [Estructuras de Datos Básicas: Ventajas y Desventajas](#-estructuras-de-datos-básicas-ventajas-y-desventajas)
-5. [Almacenamiento en Archivos Planos](#-almacenamiento-en-archivos-planos)
-6. [Bases de Datos Relacionales (SQLite)](#-bases-de-datos-relacionales-sqlite)
-7. [Análisis de Datos con Pandas](#-análisis-de-datos-con-pandas)
-8. [Gestión Avanzada de Archivos](#-gestión-avanzada-de-archivos)
-9. [Ejemplo Integrado: Sistema de Tareas](#-ejemplo-integrado-sistema-de-tareas)
-10. [Preparación de Datos para Machine Learning](#-preparación-de-datos-para-machine-learning)
-11. [Bonus: Logging, Configuración y Manejo de Errores](#-bonus-logging-configuración-y-manejo-de-errores)
-12. [Descarga el Proyecto Completo](#-descarga-el-proyecto-completo)
+3. Entornos Virtuales: Definición y Justificación
+4. Estructuras de Datos Básicas: Ventajas y Desventajas
+5. Almacenamiento en Archivos Planos
+6. Bases de Datos Relacionales (SQLite)
+7. Análisis de Datos con Pandas
+8. Gestión Avanzada de Archivos
+9. Ejemplo Integrado: Sistema de Tareas
+10. Preparación de Datos para Machine Learning
+11. Bonus: Logging, Configuración y Manejo de Errores
+12. Descarga el Proyecto Completo
 
 ---
 
@@ -27,7 +27,7 @@ Permitir que tu programa reciba argumentos desde la **línea de comandos (CLI)**
 - Integración con otros sistemas
 - Pruebas sin modificar el código
 
-### ✅ Opción 1: Usando `sys.argv` (simple)
+### Opción 1: Usando `sys.argv` (simple)
 
 ```python
 # cli_simple.py
@@ -56,7 +56,7 @@ python cli_simple.py Ana 25
 
 ---
 
-### 🚀 Opción 2: Usando `argparse` (recomendado para proyectos serios)
+### Opción 2: Usando `argparse` (recomendado para proyectos serios)
 
 ```python
 # cli_avanzado.py
