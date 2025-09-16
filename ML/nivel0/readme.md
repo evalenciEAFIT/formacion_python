@@ -253,31 +253,171 @@ with open("personas.csv", "r", encoding="utf-8") as f:
 
 ```python
 import sqlite3
+from contextlib import contextmanager
 
-# Conectar (crea si no existe)
-conn = sqlite3.connect("tareas.db")
-cursor = conn.cursor()
+# Gestor de contexto para conexión segura
+@contextmanager
+def obtener_conexion(db_path="tareas.db"):
+    """Maneja la conexión a la base de datos de forma segura."""
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row  # Permite acceder a columnas por nombre
+    try:
+        yield conn
+    except sqlite3.Error as e:
+        print(f"❌ Error en la base de datos: {e}")
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
-# Crear tabla
-cursor.execute("""
-    CREATE TABLE IF NOT EXISTS tareas (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        titulo TEXT NOT NULL,
-        completada BOOLEAN DEFAULT 0
-    )
-""")
+# Crear tabla si no existe
+def crear_tabla():
+    with obtener_conexion() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS tareas (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                titulo TEXT NOT NULL,
+                completada INTEGER DEFAULT 0,
+                fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+        print("Tabla 'tareas' creada o ya existente.")
 
-# Insertar
-cursor.execute("INSERT INTO tareas (titulo) VALUES (?)", ("Aprender SQL",))
-conn.commit()
+# INSERTAR: Crear nueva tarea
+def crear_tarea(titulo):
+    with obtener_conexion() as conn:
+        try:
+            cursor = conn.execute(
+                "INSERT INTO tareas (titulo) VALUES (?)",
+                (titulo,)
+            )
+            conn.commit()
+            print(f"✅ Tarea creada con ID: {cursor.lastrowid} → '{titulo}'")
+            return cursor.lastrowid
+        except sqlite3.Error as e:
+            print(f"❌ Error al crear tarea: {e}")
+            return None
 
-# Consultar
-cursor.execute("SELECT * FROM tareas")
-for row in cursor.fetchall():
-    print(row)
+# LEER: Listar todas las tareas
+def listar_tareas():
+    with obtener_conexion() as conn:
+        cursor = conn.execute("""
+            SELECT id, titulo, completada, fecha_creacion
+            FROM tareas
+            ORDER BY fecha_creacion DESC
+        """)
+        tareas = cursor.fetchall()
+        
+        if not tareas:
+            print("No hay tareas registradas.")
+            return []
+        
+        print(f"\nLISTA DE TAREAS ({len(tareas)}):")
+        print("-" * 60)
+        for tarea in tareas:
+            estado = "✅ Completada" if tarea["completada"] else "❌ Pendiente"
+            print(f"ID: {tarea['id']} | {tarea['titulo']} | {estado} | Creada: {tarea['fecha_creacion']}")
+        print("-" * 60)
+        return tareas
 
-# Cerrar
-conn.close()
+# ACTUALIZAR: Marcar tarea como completada
+def actualizar_tarea(id_tarea, completada=True):
+    with obtener_conexion() as conn:
+        cursor = conn.execute(
+            "UPDATE tareas SET completada = ? WHERE id = ?",
+            (1 if completada else 0, id_tarea)
+        )
+        conn.commit()
+        
+        if cursor.rowcount == 0:
+            print(f"⚠ No se encontró tarea con ID: {id_tarea}")
+            return False
+        else:
+            estado = "completada" if completada else "marcada como pendiente"
+            print(f"Tarea ID {id_tarea} {estado}.")
+            return True
+
+# ➖ ELIMINAR: Borrar tarea por ID
+def eliminar_tarea(id_tarea):
+    with obtener_conexion() as conn:
+        cursor = conn.execute("DELETE FROM tareas WHERE id = ?", (id_tarea,))
+        conn.commit()
+        
+        if cursor.rowcount == 0:
+            print(f"⚠ No se encontró tarea con ID: {id_tarea}")
+            return False
+        else:
+            print(f"Tarea ID {id_tarea} eliminada.")
+            return True
+
+# BUSCAR: Buscar tarea por título (búsqueda parcial)
+def buscar_tarea_por_titulo(palabra_clave):
+    with obtener_conexion() as conn:
+        cursor = conn.execute(
+            "SELECT id, titulo, completada, fecha_creacion FROM tareas WHERE titulo LIKE ?",
+            (f"%{palabra_clave}%",)
+        )
+        resultados = cursor.fetchall()
+        
+        if not resultados:
+            print(f"No se encontraron tareas con '{palabra_clave}'.")
+            return []
+        
+        print(f"\nRESULTADOS PARA '{palabra_clave}' ({len(resultados)}):")
+        print("-" * 60)
+        for tarea in resultados:
+            estado = "✅ Completada" if tarea["completada"] else "❌ Pendiente"
+            print(f"ID: {tarea['id']} | {tarea['titulo']} | {estado} | Creada: {tarea['fecha_creacion']}")
+        print("-" * 60)
+        return resultados
+
+# Función principal de demostración
+def main():
+    print("INICIANDO DEMO CRUD CON SQLITE...\n")
+    
+    # 1. Crear tabla
+    crear_tabla()
+    
+    # 2. Insertar tareas
+    id1 = crear_tarea("Aprender SQL")
+    id2 = crear_tarea("Practicar Python")
+    id3 = crear_tarea("Hacer ejercicio")
+    
+    print("\n" + "="*60)
+    
+    # 3. Listar todas
+    listar_tareas()
+    
+    print("\n" + "="*60)
+    
+    # 4. Actualizar (marcar como completada)
+    actualizar_tarea(id1, completada=True)
+    actualizar_tarea(id2, completada=True)
+    
+    print("\n" + "="*60)
+    
+    # 5. Listar nuevamente
+    listar_tareas()
+    
+    print("\n" + "="*60)
+    
+    # 6. Buscar por palabra clave
+    buscar_tarea_por_titulo("Python")
+    
+    print("\n" + "="*60)
+    
+    # 7. Eliminar una tarea
+    eliminar_tarea(id3)
+    
+    print("\n" + "="*60)
+    
+    # 8. Listar final
+    listar_tareas()
+
+# Ejecutar demo
+if __name__ == "__main__":
+    main()
 ```
 
 > Usa parámetros `?` para evitar inyecciones SQL.
