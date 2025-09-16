@@ -60,7 +60,7 @@ Un entorno virtual es un espacio aislado donde puedes instalar paquetes sin afec
 - Facilita la replicabilidad (`requirements.txt`)
 - Ideal para colaboración y despliegue
 
-### 🛠Cómo crear uno
+### Cómo crear uno
 
 ```bash
 # Crear entorno
@@ -95,7 +95,7 @@ deactivate
 | `set`      | ✅      | ❌       | ❌         | Eliminar duplicados | Búsquedas O(1) | Sin orden, no indexado |
 | `dict`     | ✅      | ✅ (3.7+) | ❌ claves  | Mapeos clave-valor | Acceso rápido por clave | Mayor consumo de memoria |
 
-### 🧪 Ejemplo práctico
+### Ejemplo práctico
 
 ```python
 # Lista: agregar tareas
@@ -119,9 +119,9 @@ usuario = {
 
 ---
 
-## 📁 4. Almacenamiento en Archivos Planos
+## 4. Almacenamiento en Archivos Planos
 
-### ✍️ Escribir y leer archivos `.txt`
+### Escribir y leer archivos `.txt`
 
 ```python
 # Escribir
@@ -134,7 +134,7 @@ with open("notas.txt", "r", encoding="utf-8") as f:
     print(contenido)
 ```
 
-### 📊 CSV: Comma Separated Values
+### CSV: Comma Separated Values
 
 ```python
 import csv
@@ -152,19 +152,19 @@ with open("personas.csv", "r", encoding="utf-8") as f:
         print(row)
 ```
 
-> 💡 Usa `csv.DictReader` y `csv.DictWriter` para trabajar con diccionarios.
+> Usa `csv.DictReader` y `csv.DictWriter` para trabajar con diccionarios.
 
 ---
 
-## 💾 5. Bases de Datos Relacionales (SQLite)
+## 5. Bases de Datos Relacionales (SQLite)
 
-### 🐘 ¿Por qué SQLite?
+### ¿Por qué SQLite?
 
 - Liviana, sin servidor
 - Ideal para prototipos y aplicaciones pequeñas
 - Soportada nativamente en Python
 
-### 🧩 Ejemplo práctico: CRUD básico
+### Ejemplo práctico: CRUD básico
 
 ```python
 import sqlite3
@@ -195,19 +195,19 @@ for row in cursor.fetchall():
 conn.close()
 ```
 
-> ✅ Usa parámetros `?` para evitar inyecciones SQL.
+> Usa parámetros `?` para evitar inyecciones SQL.
 
 ---
 
-## 📈 6. Análisis de Datos con Pandas
+## 6. Análisis de Datos con Pandas
 
-### 🚀 Instalación
+### Instalación
 
 ```bash
 pip install pandas matplotlib
 ```
 
-### 📊 Ejemplo: Análisis de ventas
+### Ejemplo: Análisis de ventas
 
 ```python
 import pandas as pd
@@ -230,7 +230,7 @@ df.to_csv("ventas.csv", index=False)
 df_cargado = pd.read_csv("ventas.csv")
 ```
 
-### 📉 Visualización rápida
+### Visualización rápida
 
 ```python
 import matplotlib.pyplot as plt
@@ -242,9 +242,9 @@ plt.show()
 
 ---
 
-## 🗃️ 7. Gestión Avanzada de Archivos
+## 7. Gestión Avanzada de Archivos
 
-### 🔄 Recorrer directorios
+### Recorrer directorios
 
 ```python
 import os
@@ -260,7 +260,7 @@ nuevo_dir = Path("backup")
 nuevo_dir.mkdir(exist_ok=True)
 ```
 
-### 🗜️ Comprimir y descomprimir
+### Comprimir y descomprimir
 
 ```python
 import zipfile
@@ -275,7 +275,7 @@ with zipfile.ZipFile("archivos.zip", "r") as zf:
     zf.extractall("extraidos")
 ```
 
-### 🕒 Manejo de fechas en nombres de archivos
+### Manejo de fechas en nombres de archivos
 
 ```python
 from datetime import datetime
@@ -287,11 +287,11 @@ print(nombre)  # backup_20250405_103045.zip
 
 ---
 
-## 🧩 8. Ejemplo Integrado: Sistema de Tareas
+## 8. Ejemplo Integrado: Sistema de Tareas
 
 > Un sistema completo que usa archivos, SQLite, y buenas prácticas.
 
-📁 Estructura del proyecto:
+Estructura del proyecto:
 
 ```
 sistema_tareas/
@@ -302,7 +302,7 @@ sistema_tareas/
 └── tareas.db
 ```
 
-### 🧱 `models.py`
+### `models.py`
 
 ```python
 class Tarea:
@@ -316,7 +316,7 @@ class Tarea:
         return f"{self.id}. {self.titulo} {estado}"
 ```
 
-### 🗄️ `database.py`
+### `database.py`
 
 ```python
 import sqlite3
@@ -347,7 +347,7 @@ class TareaDB:
         return [Tarea(*row) for row in cursor.fetchall()]
 ```
 
-### 🚀 `main.py`
+### `main.py`
 
 ```python
 from database import TareaDB
@@ -365,7 +365,7 @@ def main():
         if opcion == "1":
             titulo = input("Título: ")
             db.agregar(titulo)
-            print("✅ Tarea agregada.")
+            print("Tarea agregada.")
         elif opcion == "2":
             tareas = db.listar()
             for tarea in tareas:
@@ -379,9 +379,9 @@ if __name__ == "__main__":
 
 ---
 
-## 🤖 9. Preparación de Datos para Machine Learning
+## 9. Preparación de Datos para Machine Learning
 
-### 🧹 Limpieza de datos con Pandas
+### Limpieza de datos con Pandas
 
 ```python
 import pandas as pd
@@ -406,7 +406,7 @@ scaler = StandardScaler()
 df[["ingreso", "edad"]] = scaler.fit_transform(df[["ingreso", "edad"]])
 ```
 
-### 💾 Guardar datos procesados
+### Guardar datos procesados
 
 ```python
 df.to_csv("datos_limpios.csv", index=False)
@@ -416,7 +416,7 @@ import joblib
 joblib.dump(scaler, "scaler.pkl")
 ```
 
-### 📂 Estructura típica para ML
+### Estructura típica para ML
 
 ```
 proyecto_ml/
@@ -436,7 +436,7 @@ proyecto_ml/
 
 ## 🧭 10. Bonus: Logging, Configuración y Manejo de Errores
 
-### 📝 Logging
+### Logging
 
 ```python
 import logging
@@ -454,7 +454,7 @@ logging.info("Aplicación iniciada")
 logging.error("Error al conectar a la base de datos")
 ```
 
-### ⚙️ Archivo de configuración (`config.ini`)
+### Archivo de configuración (`config.ini`)
 
 ```ini
 [DATABASE]
@@ -472,7 +472,7 @@ config.read("config.ini")
 db_path = config["DATABASE"]["path"]
 ```
 
-### 🛡️ Manejo de errores
+### 🛡Manejo de errores
 
 ```python
 def dividir(a, b):
@@ -487,43 +487,3 @@ def dividir(a, b):
 ```
 
 ---
-
-## 📥 Descarga el Proyecto Completo
-
-👉 [Descargar curso_completo_python_datos_ml.zip](#) *(simulado)*
-
-Incluye:
-
-- Todos los scripts `.py` listos para ejecutar
-- Archivos de ejemplo (CSV, TXT, DB)
-- `requirements.txt`
-- Estructura de proyecto organizada
-- README con instrucciones de instalación
-
----
-
-## 📚 Recursos Adicionales
-
-- [PEP 8 — Style Guide for Python Code](https://peps.python.org/pep-0008/)
-- [Documentación oficial de Python](https://docs.python.org/3/)
-- [Pandas Documentation](https://pandas.pydata.org/docs/)
-- [SQLite Python Docs](https://docs.python.org/3/library/sqlite3.html)
-
----
-
-## ✅ ¡Listo para empezar!
-
-Con este curso tendrás una base sólida en Python para gestión de datos, preparación para machine learning, y buenas prácticas profesionales. ¡Manos a la obra!
-
-> 🐍 *"La simplicidad es la máxima sofisticación." — Leonardo da Vinci (y también la filosofía de Python)*
-
----
-
-**Autor**: Tu Instructor de Python  
-**Versión**: 1.0  
-**Última actualización**: Abril 2025  
-**Licencia**: MIT — Libre para uso educativo y comercial.
-
----
-
-> 📬 ¿Encontraste un error? ¿Tienes sugerencias? ¡Abre un issue en nuestro [repositorio de GitHub](#)!
