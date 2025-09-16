@@ -338,7 +338,7 @@ def actualizar_tarea(id_tarea, completada=True):
             print(f"Tarea ID {id_tarea} {estado}.")
             return True
 
-# ➖ ELIMINAR: Borrar tarea por ID
+# ELIMINAR: Borrar tarea por ID
 def eliminar_tarea(id_tarea):
     with obtener_conexion() as conn:
         cursor = conn.execute("DELETE FROM tareas WHERE id = ?", (id_tarea,))
