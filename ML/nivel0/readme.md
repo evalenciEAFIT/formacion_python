@@ -14,7 +14,6 @@ Nivel 0 - nivelación
 9. Ejemplo Integrado: Sistema de Tareas
 10. Preparación de Datos para Machine Learning
 11. Bonus: Logging, Configuración y Manejo de Errores
-12. Descarga el Proyecto Completo
 
 ---
 
