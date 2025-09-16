@@ -1,10 +1,6 @@
 # 🐍 Curso Práctico de Python para Gestión de Datos y Machine Learning
 
-> **Descarga este curso completo en formato `.zip` desde [aquí](#) (enlace simulado)**  
-> *Incluye todos los ejemplos prácticos, scripts y datasets listos para ejecutar.*
-
----
-
+## Nivel 0 - Nivelación
 ## 📚 Tabla de Contenidos
 
 1. [Buenas Prácticas de Programación en Python (incluyendo `main`)](#-buenas-prácticas-de-programación-en-python-incluyendo-main)
