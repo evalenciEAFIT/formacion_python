@@ -469,38 +469,7 @@ plt.show()
 
 ## 8. Gestión Avanzada de Archivos
 
-### Recorrer directorios
-
-```python
-import os
-from pathlib import Path
-
-# Usando pathlib (recomendado)
-directorio = Path("datos")
-for archivo in directorio.glob("*.csv"):
-    print(archivo.name)
-
-# Crear directorios
-nuevo_dir = Path("backup")
-nuevo_dir.mkdir(exist_ok=True)
-```
-
-### Comprimir y descomprimir
-
-```python
-import zipfile
-
-# Comprimir
-with zipfile.ZipFile("archivos.zip", "w") as zf:
-    zf.write("ventas.csv")
-    zf.write("personas.csv")
-
-# Descomprimir
-with zipfile.ZipFile("archivos.zip", "r") as zf:
-    zf.extractall("extraidos")
-```
-
-### Manejo de fechas en nombres de archivos
+### 8.0.  Manejo de fechas en nombres de archivos
 
 ```python
 from datetime import datetime
@@ -510,7 +479,321 @@ nombre = f"backup_{hoy}.zip"
 print(nombre)  # backup_20250405_103045.zip
 ```
 
+
+##  8.1. Recorrer Directorios (con `pathlib` — forma moderna y recomendada)
+
+###  Ejemplo: `listar_csv_en_directorio.py`
+
+```python
+from pathlib import Path
+
+def listar_archivos_csv(ruta_directorio="datasets"):
+    """
+    Lista todos los archivos .csv en un directorio.
+    Si el directorio no existe, lo crea vacío.
+    """
+    directorio = Path(ruta_directorio)
+    
+    # Crear directorio si no existe
+    directorio.mkdir(exist_ok=True)
+    print(f" Buscando archivos CSV en: '{directorio.absolute()}'\n")
+
+    # Obtener todos los .csv
+    archivos_csv = list(directorio.glob("*.csv"))
+    
+    if not archivos_csv:
+        print(" No se encontraron archivos .csv")
+        return []
+
+    print(f" Encontrados {len(archivos_csv)} archivos CSV:")
+    print("-" * 50)
+    for i, archivo in enumerate(archivos_csv, 1):
+        # archivo.name → solo nombre
+        # archivo.stem → nombre sin extensión
+        # archivo.suffix → extensión
+        print(f"{i:2}. {archivo.name} (Tamaño: {archivo.stat().st_size} bytes)")
+
+    return archivos_csv
+
+#  Ejecutar ejemplo
+if __name__ == "__main__":
+    listar_archivos_csv()
+```
+
+###  Salida esperada (si tienes `ventas.csv`, `personas.csv`):
+
+```
+ Buscando archivos CSV en: 'C:\tu_proyecto\datasets'
+
+ Encontrados 2 archivos CSV:
+--------------------------------------------------
+ 1. ventas.csv (Tamaño: 128 bytes)
+ 2. personas.csv (Tamaño: 85 bytes)
+```
+
 ---
+
+##  8.2. Crear Directorios (con estructura anidada)
+
+###  Ejemplo: `crear_estructura_proyecto.py`
+
+```python
+from pathlib import Path
+
+def crear_estructura_datos():
+    """
+    Crea una estructura típica para gestión de datos.
+    """
+    estructura = [
+        "data/raw",
+        "data/processed",
+        "data/external",
+        "backups",
+        "logs",
+        "exports"
+    ]
+
+    print("Creando estructura de directorios...")
+    for carpeta in estructura:
+        Path(carpeta).mkdir(parents=True, exist_ok=True)
+        print(f" {carpeta}/ creado")
+
+    print("\n Estructura final:")
+    for item in Path(".").glob("data*/"):
+        print(f"  └── {item}")
+```
+
+###  Salida esperada:
+
+```
+Creando estructura de directorios...
+ data/raw/ creado
+ data/processed/ creado
+ data/external/ creado
+ backups/ creado
+ logs/ creado
+ exports/ creado
+
+ Estructura final:
+  └── data/
+```
+
+---
+
+##  8.3. Comprimir Archivos en ZIP (con manejo de errores)
+
+###  Ejemplo: `comprimir_csvs.py`
+
+```python
+from pathlib import Path
+import zipfile
+from datetime import datetime
+
+def comprimir_archivos_csv(origen="datasets", destino="backups"):
+    """
+    Comprime todos los .csv de un directorio en un ZIP con timestamp.
+    """
+    directorio_origen = Path(origen)
+    directorio_destino = Path(destino)
+    
+    # Crear directorio de destino
+    directorio_destino.mkdir(exist_ok=True)
+
+    # Buscar CSVs
+    archivos_csv = list(directorio_origen.glob("*.csv"))
+    if not archivos_csv:
+        print(f"⚠ No hay archivos .csv en '{origen}' para comprimir.")
+        return None
+
+    # Nombre con fecha y hora
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    nombre_zip = directorio_destino / f"backup_csv_{timestamp}.zip"
+
+    print(f" Creando backup: {nombre_zip.name}")
+    print("-" * 50)
+
+    try:
+        with zipfile.ZipFile(nombre_zip, "w", zipfile.ZIP_DEFLATED) as zf:
+            for archivo in archivos_csv:
+                zf.write(archivo, arcname=archivo.name)  # arcname evita rutas largas
+                print(f"   + {archivo.name} ({archivo.stat().st_size} bytes)")
+
+        print(f"\n ¡Compresión exitosa! Tamaño total: {nombre_zip.stat().st_size} bytes")
+        return nombre_zip
+
+    except Exception as e:
+        print(f" Error al comprimir: {e}")
+        return None
+
+# Ejecutar ejemplo
+if __name__ == "__main__":
+    comprimir_archivos_csv()
+```
+
+###  Salida esperada:
+
+```
+Creando backup: backup_csv_20250504_123045.zip
+--------------------------------------------------
+   + ventas.csv (128 bytes)
+   + personas.csv (85 bytes)
+
+¡Compresión exitosa! Tamaño total: 427 bytes
+```
+
+
+## 8.4. Descomprimir Archivos ZIP (con manejo de errores y limpieza)
+
+###  Ejemplo: `descomprimir_backup.py`
+
+```python
+from pathlib import Path
+import zipfile
+
+def descomprimir_zip(ruta_zip, destino="restaurado"):
+    """
+    Descomprime un archivo .zip en una carpeta específica.
+    """
+    archivo_zip = Path(ruta_zip)
+    directorio_destino = Path(destino)
+
+    # Verificar que el ZIP existe
+    if not archivo_zip.exists():
+        print(f" El archivo {ruta_zip} no existe.")
+        return False
+
+    # Crear carpeta de destino
+    directorio_destino.mkdir(exist_ok=True)
+
+    try:
+        with zipfile.ZipFile(archivo_zip, "r") as zf:
+            print(f" Descomprimiendo {archivo_zip.name} en '{directorio_destino}/'...")
+            zf.extractall(directorio_destino)
+            
+            # Listar archivos extraídos
+            extraidos = list(directorio_destino.iterdir())
+            print(f" {len(extraidos)} archivos extraídos:")
+            for archivo in extraidos:
+                print(f"   - {archivo.name}")
+                
+        return True
+
+    except zipfile.BadZipFile:
+        print(" El archivo no es un ZIP válido.")
+        return False
+    except Exception as e:
+        print(f" Error al descomprimir: {e}")
+        return False
+
+#  Ejecutar ejemplo
+if __name__ == "__main__":
+    # Suponiendo que ya ejecutaste el ejemplo anterior y generaste un .zip
+    backups = list(Path("backups").glob("*.zip"))
+    if backups:
+        ultimo_backup = sorted(backups)[-1]  # el más reciente
+        descomprimir_zip(ultimo_backup, "datos_restaurados")
+    else:
+        print(" No hay backups disponibles para restaurar.")
+```
+
+### Salida esperada:
+
+```
+ Descomprimiendo backup_csv_20250504_123045.zip en 'datos_restaurados/'...
+ 2 archivos extraídos:
+   - ventas.csv
+   - personas.csv
+```
+
+---
+
+## 8.5. Bonus: Copiar, Mover y Eliminar Archivos
+
+### Ejemplo: `gestion_archivos_bonus.py`
+
+```python
+from pathlib import Path
+import shutil
+
+def copiar_csv_a_procesados(origen="datasets", destino="data/processed"):
+    """Copia todos los .csv al directorio 'processed'."""
+    Path(destino).mkdir(parents=True, exist_ok=True)
+    
+    for csv in Path(origen).glob("*.csv"):
+        destino_path = Path(destino) / csv.name
+        shutil.copy2(csv, destino_path)  # copy2 copia también metadatos
+        print(f" Copiado: {csv.name} → {destino_path}")
+
+def mover_csv_a_raw(origen="datasets", destino="data/raw"):
+    """Mueve (no copia) los CSVs al directorio 'raw'."""
+    Path(destino).mkdir(parents=True, exist_ok=True)
+    
+    for csv in Path(origen).glob("*.csv"):
+        destino_path = Path(destino) / csv.name
+        shutil.move(csv, destino_path)
+        print(f" Movido: {csv.name} → {destino_path}")
+
+def limpiar_directorio_vacio(ruta):
+    """Elimina un directorio si está vacío."""
+    carpeta = Path(ruta)
+    if carpeta.exists() and not any(carpeta.iterdir()):
+        carpeta.rmdir()
+        print(f" Directorio vacío eliminado: {ruta}")
+```
+
+
+## Ejecución Recomendada (para probar todo en orden)
+
+Crea un script `ejecutar_gestion_archivos.py`:
+
+```python
+from pathlib import Path
+
+# 1. Crear estructura
+from crear_estructura_proyecto import crear_estructura_datos
+crear_estructura_datos()
+
+print("\n" + "="*60 + "\n")
+
+# 2. Listar CSVs
+from listar_csv_en_directorio import listar_archivos_csv
+listar_archivos_csv()
+
+print("\n" + "="*60 + "\n")
+
+# 3. Comprimir
+from comprimir_csvs import comprimir_archivos_csv
+zip_creado = comprimir_archivos_csv()
+
+print("\n" + "="*60 + "\n")
+
+# 4. Descomprimir
+if zip_creado:
+    from descomprimir_backup import descomprimir_zip
+    descomprimir_zip(zip_creado, "datos_restaurados")
+
+print("\n" + "="*60 + "\n")
+
+# 5. Copiar a processed
+from gestion_archivos_bonus import copiar_csv_a_procesados
+copiar_csv_a_procesados()
+```
+---
+
+## Estructura Final del Proyecto
+
+```
+gestion_archivos/
+├── datasets/
+│   ├── ventas.csv
+│   └── personas.csv
+├── listar_csv_en_directorio.py
+├── crear_estructura_proyecto.py
+├── comprimir_csvs.py
+├── descomprimir_backup.py
+├── gestion_archivos_bonus.py
+└── ejecutar_gestion_archivos.py  ← ¡Ejecuta todo en orden!
+```
 
 ## 9. Ejemplo Integrado: Sistema de Tareas
 
