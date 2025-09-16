@@ -3,8 +3,8 @@ Nivel 0 - nivelación
 
 ## 📚 Tabla de Contenidos
 
-1. [Cómo pasar parámetros por CLI al inicio](#-cómo-pasar-parámetros-por-cli-al-inicio)
-2. [Buenas Prácticas de Programación en Python (incluyendo `main`)](#-buenas-prácticas-de-programación-en-python-incluyendo-main)
+1. Cómo pasar parámetros por CLI al inicio
+2. Buenas Prácticas de Programación en Python (incluyendo `main`)
 3. [Entornos Virtuales: Definición y Justificación](#-entornos-virtuales-definición-y-justificación)
 4. [Estructuras de Datos Básicas: Ventajas y Desventajas](#-estructuras-de-datos-básicas-ventajas-y-desventajas)
 5. [Almacenamiento en Archivos Planos](#-almacenamiento-en-archivos-planos)
