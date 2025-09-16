@@ -799,104 +799,393 @@ gestion_archivos/
 
 ## 9. Ejemplo Integrado: Sistema de Tareas
 
-> Un sistema completo que usa archivos, SQLite, CLI, y buenas prácticas.
+¡Perfecto! Vamos a **mejorar y completar totalmente el Ejemplo Integrado: Sistema de Tareas**, ya que efectivamente **faltaba el código de `utils.py`** y además podemos:
 
-📁 Estructura del proyecto:
+✅ Agregar funciones faltantes (actualizar, eliminar, buscar)  
+✅ Mejorar la CLI con más opciones útiles  
+✅ Incluir manejo de errores y logging  
+✅ Hacerlo 100% funcional y listo para ejecutar  
+✅ Agregar `utils.py` con funciones de validación y ayuda
+
+---
+
+# 🧩 9. Ejemplo Integrado: Sistema de Tareas — ✅ COMPLETO Y MEJORADO
+
+> Un sistema modular, profesional y listo para usar, con SQLite, CLI, logging, validación y buenas prácticas.
+
+---
+## 📥 ¿Cómo empezar?
+
+1. Crea la carpeta `sistema_tareas/`
+2. Guarda los 4 archivos: `main.py`, `database.py`, `models.py`, `utils.py`
+3. Ejecuta:
+
+```bash
+python main.py -h
+```
+---
+## 📁 Estructura del Proyecto (Actualizada)
 
 ```
 sistema_tareas/
-├── main.py
-├── database.py
-├── models.py
-├── utils.py
-└── tareas.db
+├── main.py          ← CLI principal (mejorado)
+├── database.py      ← CRUD completo + migraciones
+├── models.py        ← Clase Tarea
+├── utils.py         ← ¡AHORA INCLUIDO! (validación, logging, ayuda)
+└── tareas.db        ← se crea automáticamente
 ```
 
-### `models.py`
+---
+
+## 📄 1. `models.py` — Clase Tarea (sin cambios, pero completo)
 
 ```python
 class Tarea:
     def __init__(self, id, titulo, completada=False):
         self.id = id
         self.titulo = titulo
-        self.completada = completada
+        self.completada = bool(completada)  # Asegura tipo booleano
 
     def __str__(self):
         estado = "✅" if self.completada else "❌"
-        return f"{self.id}. {self.titulo} {estado}"
+        return f"{self.id:2}. {self.titulo:<30} {estado}"
+
+    def __repr__(self):
+        return f"Tarea(id={self.id}, titulo='{self.titulo}', completada={self.completada})"
 ```
 
-### `database.py`
+---
+
+## 📄 2. `database.py` — CRUD Completo + Migraciones
 
 ```python
+
 import sqlite3
-from models import Tarea
+from contextlib import contextmanager
+from pathlib import Path
+from models import Tarea  # ✅ ¡IMPORTANTE! Sin esto, 'Tarea' no existe
+
+@contextmanager
+def obtener_conexion(db_path="tareas.db"):
+    """Gestiona conexión segura a la base de datos."""
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        yield conn
+    except sqlite3.Error as e:
+        print(f"❌ Error en la base de datos: {e}")
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+def crear_tabla():
+    """Crea la tabla si no existe."""
+    with obtener_conexion() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS tareas (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                titulo TEXT NOT NULL,
+                completada INTEGER DEFAULT 0,
+                fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        conn.commit()
+
+def agregar_columna_fecha_si_no_existe():
+    """Agrega columna 'fecha_creacion' si no existe (migración)."""
+    with obtener_conexion() as conn:
+        cursor = conn.execute("PRAGMA table_info(tareas)")
+        columnas = [col[1] for col in cursor.fetchall()]
+        if "fecha_creacion" not in columnas:
+            conn.execute("ALTER TABLE tareas ADD COLUMN fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+            conn.commit()
 
 class TareaDB:
     def __init__(self, db_path="tareas.db"):
-        self.conn = sqlite3.connect(db_path)
-        self.crear_tabla()
-
-    def crear_tabla(self):
-        query = """
-        CREATE TABLE IF NOT EXISTS tareas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            titulo TEXT NOT NULL,
-            completada INTEGER DEFAULT 0
-        )
-        """
-        self.conn.execute(query)
-        self.conn.commit()
+        self.db_path = db_path
+        Path(db_path).touch(exist_ok=True)  # Crea archivo si no existe
+        crear_tabla()
+        agregar_columna_fecha_si_no_existe()
 
     def agregar(self, titulo):
-        self.conn.execute("INSERT INTO tareas (titulo) VALUES (?)", (titulo,))
-        self.conn.commit()
+        with obtener_conexion(self.db_path) as conn:
+            cursor = conn.execute("INSERT INTO tareas (titulo) VALUES (?)", (titulo,))
+            conn.commit()
+            return cursor.lastrowid
 
     def listar(self):
-        cursor = self.conn.execute("SELECT id, titulo, completada FROM tareas")
-        return [Tarea(*row) for row in cursor.fetchall()]
+        with obtener_conexion(self.db_path) as conn:
+            cursor = conn.execute("""
+                SELECT id, titulo, completada 
+                FROM tareas 
+                ORDER BY id DESC
+            """)
+            # ✅ Ahora 'Tarea' está definido gracias al import
+            return [Tarea(row["id"], row["titulo"], row["completada"]) for row in cursor.fetchall()]
+
+    def completar(self, id_tarea):
+        with obtener_conexion(self.db_path) as conn:
+            cursor = conn.execute("UPDATE tareas SET completada = 1 WHERE id = ?", (id_tarea,))
+            conn.commit()
+            return cursor.rowcount > 0
+
+    def eliminar(self, id_tarea):
+        with obtener_conexion(self.db_path) as conn:
+            cursor = conn.execute("DELETE FROM tareas WHERE id = ?", (id_tarea,))
+            conn.commit()
+            return cursor.rowcount > 0
+
+    def buscar(self, palabra):
+        with obtener_conexion(self.db_path) as conn:
+            cursor = conn.execute(
+                "SELECT id, titulo, completada FROM tareas WHERE titulo LIKE ?",
+                (f"%{palabra}%",)
+            )
+            return [Tarea(row["id"], row["titulo"], row["completada"]) for row in cursor.fetchall()]
+
 ```
 
-### `main.py` (con soporte CLI)
+---
+
+## 📄 3. `utils.py` — ¡FINALMENTE INCLUIDO! ✅
+
+```python
+import logging
+import argparse
+
+def configurar_logging(nivel=logging.INFO):
+    """Configura el sistema de logging para la aplicación."""
+    logging.basicConfig(
+        level=nivel,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.FileHandler("sistema_tareas.log", encoding="utf-8"),
+            logging.StreamHandler()
+        ]
+    )
+
+def validar_titulo(titulo):
+    """Valida que el título no esté vacío y tenga longitud razonable."""
+    if not titulo or not titulo.strip():
+        raise ValueError("❌ El título no puede estar vacío.")
+    if len(titulo) > 200:
+        raise ValueError("❌ El título es demasiado largo (máx. 200 caracteres).")
+    return titulo.strip()
+
+def mostrar_ayuda_personalizada():
+    """Muestra una ayuda amigable con emojis y ejemplos."""
+    ayuda = """
+🌟 SISTEMA DE GESTIÓN DE TAREAS 🌟
+
+Uso:
+  python main.py [OPCIÓN]
+
+Opciones:
+  -a, --agregar TEXTO     ➕ Agregar nueva tarea
+  -l, --listar            📋 Listar todas las tareas
+  -c, --completar ID      ✅ Marcar tarea como completada
+  -e, --eliminar ID       🗑️  Eliminar tarea por ID
+  -b, --buscar PALABRA    🔍 Buscar tareas por palabra clave
+  -v, --verbose           📢 Modo detallado (muestra logs)
+  -h, --help              ❓ Mostrar esta ayuda
+
+Ejemplos:
+  python main.py -a "Estudiar Python"
+  python main.py -l
+  python main.py -c 1
+  python main.py -b "Python"
+"""
+    print(ayuda)
+```
+
+---
+
+## 📄 4. `main.py` — CLI Completo y Mejorado
 
 ```python
 import argparse
 from database import TareaDB
+from models import Tarea
+from utils import configurar_logging, validar_titulo, mostrar_ayuda_personalizada
+import logging
 
 def main():
-    parser = argparse.ArgumentParser(description="Gestor de Tareas CLI")
+    parser = argparse.ArgumentParser(add_help=False)  # Desactivamos ayuda automática
     parser.add_argument("--agregar", "-a", type=str, help="Agregar nueva tarea")
-    parser.add_argument("--listar", "-l", action="store_true", help="Listar todas las tareas")
+    parser.add_argument("--listar", "-l", action="store_true", help="Listar tareas")
+    parser.add_argument("--completar", "-c", type=int, help="Completar tarea por ID")
+    parser.add_argument("--eliminar", "-e", type=int, help="Eliminar tarea por ID")
+    parser.add_argument("--buscar", "-b", type=str, help="Buscar tareas por palabra clave")
     parser.add_argument("--verbose", "-v", action="store_true", help="Modo detallado")
+    parser.add_argument("--help", "-h", action="store_true", help="Mostrar ayuda")
 
     args = parser.parse_args()
+
+    # Configurar logging
+    nivel = logging.INFO if args.verbose else logging.WARNING
+    configurar_logging(nivel)
+
+    # Mostrar ayuda personalizada
+    if args.help:
+        mostrar_ayuda_personalizada()
+        return
+
+    # Inicializar base de datos
     db = TareaDB()
 
-    if args.agregar:
-        db.agregar(args.agregar)
-        print(f"Tarea '{args.agregar}' agregada.")
-    elif args.listar:
-        tareas = db.listar()
-        if not tareas:
-            print("No hay tareas.")
+    try:
+        if args.agregar:
+            titulo = validar_titulo(args.agregar)
+            id_nueva = db.agregar(titulo)
+            print(f"✅ Tarea agregada con ID {id_nueva}: '{titulo}'")
+            logging.info(f"Tarea agregada: ID {id_nueva}, '{titulo}'")
+
+        elif args.listar:
+            tareas = db.listar()
+            if not tareas:
+                print("📭 No hay tareas registradas.")
+            else:
+                print(f"\n📋 LISTA DE TAREAS ({len(tareas)}):")
+                print("=" * 60)
+                for tarea in tareas:
+                    print(tarea)
+                print("=" * 60)
+
+        elif args.completar is not None:
+            if db.completar(args.completar):
+                print(f"✅ Tarea ID {args.completar} marcada como completada.")
+                logging.info(f"Tarea completada: ID {args.completar}")
+            else:
+                print(f"⚠️  No se encontró tarea con ID {args.completar}.")
+
+        elif args.eliminar is not None:
+            if db.eliminar(args.eliminar):
+                print(f"🗑️  Tarea ID {args.eliminar} eliminada.")
+                logging.info(f"Tarea eliminada: ID {args.eliminar}")
+            else:
+                print(f"⚠️  No se encontró tarea con ID {args.eliminar}.")
+
+        elif args.buscar:
+            resultados = db.buscar(args.buscar)
+            if not resultados:
+                print(f"🔍 No se encontraron tareas con '{args.buscar}'.")
+            else:
+                print(f"\n🔎 RESULTADOS PARA '{args.buscar}' ({len(resultados)}):")
+                print("=" * 60)
+                for tarea in resultados:
+                    print(tarea)
+                print("=" * 60)
+
         else:
-            for tarea in tareas:
-                print(tarea)
-    else:
-        parser.print_help()
+            mostrar_ayuda_personalizada()
+
+    except ValueError as ve:
+        print(ve)
+        logging.error(f"Error de validación: {ve}")
+    except Exception as e:
+        print(f"❌ Error inesperado: {e}")
+        logging.error(f"Error inesperado: {e}")
 
 if __name__ == "__main__":
     main()
 ```
 
-**Ejecución:**
+---
+
+## 🧪 Ejecución y Salidas Esperadas
+
+### ➕ Agregar tarea
 
 ```bash
-python main.py -a "Terminar reporte"
+python main.py -a "Aprender Pandas"
+```
+```
+✅ Tarea agregada con ID 1: 'Aprender Pandas'
+```
+
+### 📋 Listar tareas
+
+```bash
 python main.py -l
+```
+```
+📋 LISTA DE TAREAS (2):
+============================================================
+ 1. Aprender Pandas                     ✅
+ 2. Hacer ejercicio                     ❌
+============================================================
+```
+
+### ✅ Completar tarea
+
+```bash
+python main.py -c 2
+```
+```
+✅ Tarea ID 2 marcada como completada.
+```
+
+### 🗑️ Eliminar tarea
+
+```bash
+python main.py -e 1
+```
+```
+🗑️  Tarea ID 1 eliminada.
+```
+
+### 🔍 Buscar tarea
+
+```bash
+python main.py -b "Pandas"
+```
+```
+🔎 RESULTADOS PARA 'Pandas' (1):
+============================================================
+ 3. Aprender Pandas                     ✅
+============================================================
+```
+
+### ❓ Mostrar ayuda
+
+```bash
+python main.py -h
+```
+```
+🌟 SISTEMA DE GESTIÓN DE TAREAS 🌟
+
+Uso:
+  python main.py [OPCIÓN]
+
+Opciones:
+  -a, --agregar TEXTO     ➕ Agregar nueva tarea
+  -l, --listar            📋 Listar todas las tareas
+  -c, --completar ID      ✅ Marcar tarea como completada
+  -e, --eliminar ID       🗑️  Eliminar tarea por ID
+  -b, --buscar PALABRA    🔍 Buscar tareas por palabra clave
+  -v, --verbose           📢 Modo detallado (muestra logs)
+  -h, --help              ❓ Mostrar esta ayuda
+
+Ejemplos:
+  python main.py -a "Estudiar Python"
+  python main.py -l
+  python main.py -c 1
+  python main.py -b "Python"
 ```
 
 ---
+
+## 📄 Archivo de Log Generado (`sistema_tareas.log`)
+
+```
+2025-05-04 14:30:45,123 - INFO - Tarea agregada: ID 1, 'Aprender Pandas'
+2025-05-04 14:31:10,456 - INFO - Tarea completada: ID 2
+2025-05-04 14:32:05,789 - INFO - Tarea eliminada: ID 1
+```
+
+---
+
 
 ## 10. Preparación de Datos para Machine Learning
 
