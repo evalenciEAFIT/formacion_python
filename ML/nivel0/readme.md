@@ -1176,22 +1176,7 @@ Ejemplos:
 
 
 ## 10. Preparación de Datos para Machine Learning
-¡Perfecto! Vamos a **mejorar y completar totalmente la sección 10: Preparación de Datos para Machine Learning**, con:
-
-✅ Guía clara de instalación de paquetes  
-✅ Archivo `requirements.txt` completo  
-✅ Script `data_preprocessing.py` funcional y robusto  
-✅ Manejo de errores y logging  
-✅ Estructura de proyecto lista para usar  
-✅ Instrucciones paso a paso para principiantes
-
----
-
-# 🤖 10. Preparación de Datos para Machine Learning — ✅ MEJORADO y COMPLETO
-
 > Aprende a limpiar, transformar y preparar tus datos para modelos de ML — con código listo para producción, manejo de errores y buenas prácticas.
-
----
 
 ## 📦 10.1. Guía para Instalar Paquetes Necesarios
 
@@ -1568,8 +1553,6 @@ proyecto_ml/
 ```
 
 
----
-
 ### 🎯 ¿Por qué usar `.pkl`?
 
 | Ventaja                           | Explicación                                                                 |
@@ -1591,7 +1574,8 @@ proyecto_ml/
  
 Un archivo **`.pkl` es como una "foto" de un objeto de Python que puedes guardar y restaurar después. Es esencial en machine learning para no perder horas de entrenamiento y mantener consistencia entre preparación y predicción.**
 
-
+---
+---
 
 ## 11. Bonus: Logging, Configuración y Manejo de Errores
 
