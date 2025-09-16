@@ -825,7 +825,7 @@ sistema_tareas/
 
 ---
 
-## 📄 1. `models.py` — Clase Tarea (sin cambios, pero completo)
+## 📄 9.1. `models.py` — Clase Tarea (sin cambios, pero completo)
 
 ```python
 class Tarea:
@@ -844,7 +844,7 @@ class Tarea:
 
 ---
 
-## 📄 2. `database.py` — CRUD Completo + Migraciones
+## 📄 9.2. `database.py` — CRUD Completo + Migraciones
 
 ```python
 
@@ -936,7 +936,7 @@ class TareaDB:
 
 ---
 
-## 📄 3. `utils.py` — ¡FINALMENTE INCLUIDO! ✅
+## 📄 9.3. `utils.py` — ¡FINALMENTE INCLUIDO! ✅
 
 ```python
 import logging
@@ -989,7 +989,7 @@ Ejemplos:
 
 ---
 
-## 📄 4. `main.py` — CLI Completo y Mejorado
+## 📄 9.4. `main.py` — CLI Completo y Mejorado
 
 ```python
 import argparse
@@ -1176,59 +1176,422 @@ Ejemplos:
 
 
 ## 10. Preparación de Datos para Machine Learning
+¡Perfecto! Vamos a **mejorar y completar totalmente la sección 10: Preparación de Datos para Machine Learning**, con:
 
-### Limpieza de datos con Pandas
+✅ Guía clara de instalación de paquetes  
+✅ Archivo `requirements.txt` completo  
+✅ Script `data_preprocessing.py` funcional y robusto  
+✅ Manejo de errores y logging  
+✅ Estructura de proyecto lista para usar  
+✅ Instrucciones paso a paso para principiantes
+
+---
+
+# 🤖 10. Preparación de Datos para Machine Learning — ✅ MEJORADO y COMPLETO
+
+> Aprende a limpiar, transformar y preparar tus datos para modelos de ML — con código listo para producción, manejo de errores y buenas prácticas.
+
+---
+
+## 📦 10.1. Guía para Instalar Paquetes Necesarios
+
+### ✅ Opción 1: Instalación manual (recomendada para aprendizaje)
+
+```bash
+# Activa tu entorno virtual primero (si lo usas)
+# En Windows:
+mi_entorno\Scripts\activate
+
+# En Linux/Mac:
+source mi_entorno/bin/activate
+
+# Instala los paquetes esenciales
+pip install pandas scikit-learn joblib numpy matplotlib
+```
+
+### ✅ Opción 2: Usar `requirements.txt` (recomendado para proyectos y colaboración)
+
+Crea un archivo `requirements.txt` en la raíz de tu proyecto:
+
+```txt
+# requirements.txt
+pandas>=2.0.0
+scikit-learn>=1.3.0
+joblib>=1.3.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+```
+
+Luego ejecuta:
+
+```bash
+pip install -r requirements.txt
+```
+
+> 💡 **Tip profesional**: Siempre fija versiones mínimas para evitar incompatibilidades.
+
+---
+
+## 🧹 10.2. Limpieza y Preparación de Datos — Script Completo y Robusto
+
+### 📄 `src/data_preprocessing.py`
 
 ```python
 import pandas as pd
-
-df = pd.read_csv("datos_sucios.csv")
-
-# Ver nulos
-print(df.isnull().sum())
-
-# Eliminar nulos
-df = df.dropna()
-
-# O rellenar
-df["edad"].fillna(df["edad"].mean(), inplace=True)
-
-# Codificar categóricas
-df = pd.get_dummies(df, columns=["categoria"])
-
-# Escalar (usando sklearn)
+import numpy as np
 from sklearn.preprocessing import StandardScaler
-scaler = StandardScaler()
-df[["ingreso", "edad"]] = scaler.fit_transform(df[["ingreso", "edad"]])
-```
-
-### Guardar datos procesados
-
-```python
-df.to_csv("datos_limpios.csv", index=False)
-
-# Guardar scaler para usar en producción
 import joblib
-joblib.dump(scaler, "scaler.pkl")
+import logging
+import os
+from pathlib import Path
+
+# Configurar logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("preprocessing.log", encoding="utf-8"),
+        logging.StreamHandler()
+    ]
+)
+
+def cargar_datos(ruta):
+    """Carga un CSV y valida que exista."""
+    if not os.path.exists(ruta):
+        raise FileNotFoundError(f"❌ Archivo no encontrado: {ruta}")
+    
+    logging.info(f"📂 Cargando datos desde: {ruta}")
+    df = pd.read_csv(ruta)
+    logging.info(f"📊 Forma inicial: {df.shape}")
+    return df
+
+def explorar_datos(df):
+    """Muestra información básica del dataset."""
+    print("\n🔍 INFORMACIÓN DEL DATASET:")
+    print("=" * 50)
+    print("Columnas:", list(df.columns))
+    print("\n❓ Valores nulos por columna:")
+    print(df.isnull().sum())
+    print(f"\n📈 Tipos de datos:\n{df.dtypes}")
+    print(f"\n📉 Descripción estadística:\n{df.describe(include='all').T}")
+
+def limpiar_datos(df):
+    """Limpia el dataset paso a paso."""
+    logging.info("🧹 Iniciando limpieza de datos...")
+
+    # 1. Eliminar filas con más del 50% de valores nulos
+    umbral = len(df.columns) * 0.5
+    df = df.dropna(thresh=umbral)
+    logging.info(f"🗑️  Filas eliminadas por muchos nulos. Nueva forma: {df.shape}")
+
+    # 2. Rellenar Edad (si existe)
+    if "Edad" in df.columns:
+        if df["Edad"].isnull().any():
+            mediana_edad = df["Edad"].median()
+            df["Edad"] = df["Edad"].fillna(mediana_edad)
+            logging.info(f"🧓 Edad rellenada con mediana: {mediana_edad}")
+
+    # 3. Rellenar Ingreso (si existe)
+    if "Ingreso" in df.columns:
+        if df["Ingreso"].isnull().any():
+            media_ingreso = df["Ingreso"].mean()
+            df["Ingreso"] = df["Ingreso"].fillna(media_ingreso)
+            logging.info(f"💰 Ingreso rellenado con media: {media_ingreso:.2f}")
+
+    # 4. Codificar variables categóricas
+    columnas_categoricas = df.select_dtypes(include=["object"]).columns.tolist()
+    columnas_categoricas = [col for col in columnas_categoricas if col != "Nombre"]  # Excluir identificadores
+
+    if columnas_categoricas:
+        logging.info(f"🔤 Codificando variables categóricas: {columnas_categoricas}")
+        df = pd.get_dummies(df, columns=columnas_categoricas, prefix_sep="_", dummy_na=True)
+
+    return df
+
+def escalar_datos(df, columnas_numericas=None):
+    """Escala columnas numéricas usando StandardScaler."""
+    if columnas_numericas is None:
+        columnas_numericas = ["Edad", "Ingreso"]
+    
+    # Filtrar solo columnas que existan
+    columnas_numericas = [col for col in columnas_numericas if col in df.columns]
+    
+    if not columnas_numericas:
+        logging.warning("⚠️  No hay columnas numéricas para escalar.")
+        return df, None
+
+    scaler = StandardScaler()
+    df[columnas_numericas] = scaler.fit_transform(df[columnas_numericas])
+    logging.info(f"📏 Columnas escaladas: {columnas_numericas}")
+    
+    return df, scaler
+
+def guardar_datos(df, ruta_salida):
+    """Guarda el dataset limpio."""
+    # Asegurar que el directorio exista
+    Path(ruta_salida).parent.mkdir(parents=True, exist_ok=True)
+    
+    df.to_csv(ruta_salida, index=False, encoding="utf-8")
+    logging.info(f"✅ Datos limpios guardados en: {ruta_salida}")
+    return ruta_salida
+
+def main():
+    try:
+        # Rutas (ajusta según tu estructura)
+        RUTA_ENTRADA = "data/raw/datos_sucios.csv"
+        RUTA_SALIDA = "data/processed/datos_limpios.csv"
+        RUTA_SCALER = "models/scaler.pkl"
+
+        # Crear estructura de directorios
+        for carpeta in ["data/raw", "data/processed", "models", "logs"]:
+            Path(carpeta).mkdir(parents=True, exist_ok=True)
+
+        # Proceso completo
+        df = cargar_datos(RUTA_ENTRADA)
+        explorar_datos(df)
+        
+        df_limpio = limpiar_datos(df)
+        df_limpio, scaler = escalar_datos(df_limpio)
+        
+        guardar_datos(df_limpio, RUTA_SALIDA)
+        
+        if scaler:
+            joblib.dump(scaler, RUTA_SCALER)
+            logging.info(f"💾 Scaler guardado en: {RUTA_SCALER}")
+
+        print(f"\n🎉 ¡Proceso completado exitosamente!")
+        print(f"✅ Datos limpios: {RUTA_SALIDA}")
+        print(f"✅ Scaler guardado: {RUTA_SCALER}")
+
+    except Exception as e:
+        logging.error(f"💥 Error durante el procesamiento: {e}")
+        raise
+
+if __name__ == "__main__":
+    main()
 ```
 
-### 📂 Estructura típica para ML
+---
+
+## 📂10.3. Estructura de Proyecto Recomendada
 
 ```
 proyecto_ml/
 ├── data/
 │   ├── raw/
-│   ├── processed/
-│   └── external/
+│   │   └── datos_sucios.csv          ← ¡Descárgalo del curso!
+│   └── processed/
+│       └── datos_limpios.csv         ← ¡Se genera automáticamente!
 ├── models/
-├── notebooks/
+│   └── scaler.pkl                    ← ¡Se genera automáticamente!
 ├── src/
-│   ├── data_preprocessing.py
-│   └── train_model.py
-└── requirements.txt
+│   └── data_preprocessing.py         ← Script principal
+├── logs/
+│   └── preprocessing.log             ← Registro de ejecución
+├── requirements.txt                  ← Dependencias
+└── README.md                         ← Instrucciones
 ```
 
 ---
+
+## 🧪 10.4. Ejecución Paso a Paso
+
+### Paso 1: Crear entorno virtual (opcional pero recomendado)
+
+```bash
+python -m venv ml_entorno
+ml_entorno\Scripts\activate    # Windows
+source ml_entorno/bin/activate # Linux/Mac
+```
+
+### Paso 2: Instalar dependencias
+
+```bash
+pip install -r requirements.txt
+```
+
+### Paso 3: Colocar `datos_sucios.csv` en `data/raw/`
+
+> Si no lo tienes, aquí está el contenido mínimo para probar:
+
+```csv
+Nombre,Edad,Categoria,Ingreso
+Ana,25,A,3500
+Luis,,B,4200
+Maria,30,,5000
+Juan,22,A,
+,28,C,3800
+```
+
+### Paso 4: Ejecutar el script
+
+```bash
+python src/data_preprocessing.py
+```
+
+### ✅ Salida esperada:
+
+```
+2025-05-04 16:30:45,123 - INFO - 📂 Cargando datos desde: data/raw/datos_sucios.csv
+2025-05-04 16:30:45,456 - INFO - 📊 Forma inicial: (5, 4)
+...
+2025-05-04 16:30:46,789 - INFO - 🧓 Edad rellenada con mediana: 25.0
+2025-05-04 16:30:46,890 - INFO - 💰 Ingreso rellenado con media: 4125.00
+2025-05-04 16:30:47,001 - INFO - 🔤 Codificando variables categóricas: ['Categoria']
+2025-05-04 16:30:47,112 - INFO - 📏 Columnas escaladas: ['Edad', 'Ingreso']
+2025-05-04 16:30:47,223 - INFO - ✅ Datos limpios guardados en: data/processed/datos_limpios.csv
+2025-05-04 16:30:47,334 - INFO - 💾 Scaler guardado en: models/scaler.pkl
+
+🎉 ¡Proceso completado exitosamente!
+✅ Datos limpios: data/processed/datos_limpios.csv
+✅ Scaler guardado: models/scaler.pkl
+```
+
+---
+
+## 📄 10.5. Archivo `requirements.txt` Completo
+
+```txt
+# requirements.txt - Proyecto de Preparación de Datos para ML
+
+# Procesamiento de datos
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Machine Learning
+scikit-learn>=1.3.0
+
+# Serialización
+joblib>=1.3.0
+
+# Visualización (opcional)
+matplotlib>=3.7.0
+
+# Para notebooks (opcional)
+jupyter>=1.0.0
+```
+
+---
+
+## 🧩 10.6. Bonus: Script para Verificar Instalación
+
+Crea `verificar_instalacion.py`:
+
+```python
+def verificar_paquetes():
+    paquetes = ["pandas", "sklearn", "joblib", "numpy"]
+    todos_instalados = True
+    
+    print("🔍 Verificando instalación de paquetes...\n")
+    
+    for paquete in paquetes:
+        try:
+            __import__(paquete)
+            print(f"✅ {paquete} - INSTALADO")
+        except ImportError:
+            print(f"❌ {paquete} - NO INSTALADO")
+            todos_instalados = False
+    
+    if todos_instalados:
+        print("\n🎉 ¡Todos los paquetes están instalados correctamente!")
+    else:
+        print("\n⚠️  Algunos paquetes faltan. Ejecuta: pip install -r requirements.txt")
+
+if __name__ == "__main__":
+    verificar_paquetes()
+```
+
+Ejecútalo con:
+
+```bash
+python verificar_instalacion.py
+```
+
+---
+## CLARIDAD de pkl
+### 📦 ¿Qué es un archivo `.pkl` y para qué sirve?
+
+---
+
+### Definición simple
+
+Un archivo con extensión **`.pkl`** es un archivo **serializado en formato "pickle"**, que permite **guardar y cargar objetos de Python** (como modelos de machine learning, estructuras de datos, scalers, etc.) **en disco**, para usarlos más tarde sin tener que volver a crearlos o entrenarlos.
+
+> El nombre viene de **"pickle"** — el módulo de Python que se encarga de la serialización.
+
+---
+
+### ¿Qué significa "serializar"?
+
+**Serializar** = Convertir un objeto en memoria (como un modelo entrenado, una lista, un diccionario, un scaler, etc.) en una secuencia de bytes que se puede guardar en un archivo o enviar por red.
+
+**Deserializar** = Hacer el proceso inverso: leer esos bytes y reconstruir el objeto original en memoria.
+
+---
+
+### 🆚 `pickle` vs `joblib`
+
+Ambos sirven para lo mismo, pero:
+
+| Característica          | `pickle` (built-in)           | `joblib` (recomendado para ML)       |
+|-------------------------|-------------------------------|--------------------------------------|
+| Velocidad               | 🐢 Más lento con arrays NumPy | 🐇 Más rápido con arrays NumPy       |
+| Tamaño de archivo       | Más grande                    | Más compacto                         |
+| Uso típico              | Objetos pequeños              | Modelos, datasets, scalers grandes   |
+| Compatibilidad          | Nativo en Python              | Necesita `pip install joblib`        |
+
+> ✅ **Recomendación profesional**: Usa **`joblib`** para machine learning. Es más eficiente y es el estándar en la comunidad (scikit-learn lo usa internamente).
+
+---
+
+### ⚠️ Advertencias de seguridad
+
+**NUNCA cargues un `.pkl` de fuente no confiable.**
+
+El formato pickle puede ejecutar código arbitrario al deserializar. Solo usa archivos `.pkl` generados por ti o por fuentes de confianza.
+
+> 🔐 Para entornos de producción o APIs, considera formatos más seguros como `JSON`, `HDF5`, o formatos de modelo como `ONNX`.
+
+---
+
+### 📁 Ejemplo práctico: Flujo típico en ML
+
+```bash
+proyecto_ml/
+├── train.py           # Entrena y guarda modelo.pkl + scaler.pkl
+├── predict.py         # Carga modelo.pkl + scaler.pkl y predice
+├── models/
+│   ├── modelo.pkl
+│   └── scaler.pkl
+└── data/
+    └── nuevos_datos.csv
+```
+
+
+---
+
+### 🎯 ¿Por qué usar `.pkl`?
+
+| Ventaja                           | Explicación                                                                 |
+|-----------------------------------|-----------------------------------------------------------------------------|
+| ⏱️ Ahorra tiempo                 | No necesitas reentrenar modelos cada vez que ejecutas tu app.               |
+| 💾 Persistencia                  | Guardas el estado exacto de un objeto complejo.                             |
+| 🔄 Consistencia                  | Aseguras que usas los mismos parámetros/preprocesadores en train y predict. |
+| 🧩 Modularidad                   | Separas entrenamiento de inferencia.                                        |
+| 🚀 Producción                    | Es el formato estándar para desplegar modelos en entornos reales.           |
+
+---
+
+### ❌ ¿Cuándo NO usar `.pkl`?
+
+- Si necesitas interoperabilidad con otros lenguajes (usa `JSON`, `Parquet`, `ONNX`).
+- Si el archivo será leído por humanos (usa `CSV`, `JSON`).
+- Si la seguridad es crítica y los archivos vienen de fuentes externas.
+
+ 
+Un archivo **`.pkl` es como una "foto" de un objeto de Python que puedes guardar y restaurar después. Es esencial en machine learning para no perder horas de entrenamiento y mantener consistencia entre preparación y predicción.**
+
+
 
 ## 11. Bonus: Logging, Configuración y Manejo de Errores
 
