@@ -114,10 +114,10 @@ Tienes 30 años.
 - Reusabilidad
 - Evitar efectos secundarios al importar
 
-### 🎯 Recomendaciones
+### Recomendaciones
 
 ```python
-# ✅ Buen ejemplo: uso de if __name__ == "__main__"
+# Buen ejemplo: uso de if __name__ == "__main__"
 def saludar(nombre):
     return f"Hola, {nombre}!"
 
@@ -129,31 +129,24 @@ if __name__ == "__main__":
     main()
 ```
 
-### 📌 Consejos Adicionales
+### Consejos Adicionales
 
-- Usa nombres descriptivos: `calcular_promedio()` > `calc()`
-- Documenta funciones con docstrings
-- Usa type hints (Python 3.5+)
-- Sigue PEP8 (herramientas: `flake8`, `black`, `isort`)
+- Usa nombres descriptivos: `calcular_promedio()` mejor que `calc()`
 - Divide en módulos y paquetes cuando crezca el proyecto
 
 ---
 
-## 🧪 3. Entornos Virtuales: Definición y Justificación
+## 3. Entornos Virtuales: Definición y Justificación
 
-[Volver al índice](#-tabla-de-contenidos)
-
-### ❓ ¿Qué es un entorno virtual?
-
+### ¿Qué es un entorno virtual?
 Un entorno virtual es un espacio aislado donde puedes instalar paquetes sin afectar el sistema global ni otros proyectos.
 
-### 🧩 ¿Por qué usarlo?
-
+### ¿Por qué usarlo?
 - Evita conflictos de versiones entre proyectos
 - Facilita la replicabilidad (`requirements.txt`)
 - Ideal para colaboración y despliegue
 
-### 🛠️ Cómo crear uno
+### Cómo crear uno
 
 ```bash
 # Crear entorno
@@ -175,13 +168,11 @@ pip freeze > requirements.txt
 deactivate
 ```
 
-> 💡 **Tip**: Usa `pipenv` o `poetry` para gestión avanzada de dependencias.
+> **Tip**: Usa `pipenv` o `poetry` para gestión avanzada de dependencias.
 
 ---
 
-## 🗃️ 4. Estructuras de Datos Básicas: Ventajas y Desventajas
-
-[Volver al índice](#-tabla-de-contenidos)
+## 4. Estructuras de Datos Básicas: Ventajas y Desventajas
 
 | Estructura | Mutable | Ordenada | Duplicados | Uso típico | Ventajas | Desventajas |
 |------------|---------|----------|------------|------------|----------|-------------|
@@ -190,7 +181,7 @@ deactivate
 | `set`      | ✅      | ❌       | ❌         | Eliminar duplicados | Búsquedas O(1) | Sin orden, no indexado |
 | `dict`     | ✅      | ✅ (3.7+) | ❌ claves  | Mapeos clave-valor | Acceso rápido por clave | Mayor consumo de memoria |
 
-### 🧪 Ejemplo práctico
+### Ejemplo práctico
 
 ```python
 # Lista: agregar tareas
@@ -214,11 +205,9 @@ usuario = {
 
 ---
 
-## 📁 5. Almacenamiento en Archivos Planos
+## 5. Almacenamiento en Archivos Planos
 
-[Volver al índice](#-tabla-de-contenidos)
-
-### ✍️ Escribir y leer archivos `.txt`
+### Escribir y leer archivos `.txt`
 
 ```python
 # Escribir
@@ -231,7 +220,7 @@ with open("notas.txt", "r", encoding="utf-8") as f:
     print(contenido)
 ```
 
-### 📊 CSV: Comma Separated Values
+### CSV: Comma Separated Values
 
 ```python
 import csv
@@ -249,21 +238,18 @@ with open("personas.csv", "r", encoding="utf-8") as f:
         print(row)
 ```
 
-> 💡 Usa `csv.DictReader` y `csv.DictWriter` para trabajar con diccionarios.
+> Usa `csv.DictReader` y `csv.DictWriter` para trabajar con diccionarios.
 
 ---
 
-## 💾 6. Bases de Datos Relacionales (SQLite)
+## 6. Bases de Datos Relacionales (SQLite)
 
-[Volver al índice](#-tabla-de-contenidos)
-
-### 🐘 ¿Por qué SQLite?
-
+### ¿Por qué SQLite?
 - Liviana, sin servidor
 - Ideal para prototipos y aplicaciones pequeñas
 - Soportada nativamente en Python
 
-### 🧩 Ejemplo práctico: CRUD básico
+### Ejemplo práctico: CRUD básico
 
 ```python
 import sqlite3
@@ -294,21 +280,19 @@ for row in cursor.fetchall():
 conn.close()
 ```
 
-> ✅ Usa parámetros `?` para evitar inyecciones SQL.
+> Usa parámetros `?` para evitar inyecciones SQL.
 
 ---
 
-## 📈 7. Análisis de Datos con Pandas
+## 7. Análisis de Datos con Pandas
 
-[Volver al índice](#-tabla-de-contenidos)
-
-### 🚀 Instalación
+### Instalación
 
 ```bash
 pip install pandas matplotlib
 ```
 
-### 📊 Ejemplo: Análisis de ventas
+### Ejemplo: Análisis de ventas
 
 ```python
 import pandas as pd
@@ -331,7 +315,7 @@ df.to_csv("ventas.csv", index=False)
 df_cargado = pd.read_csv("ventas.csv")
 ```
 
-### 📉 Visualización rápida
+### Visualización rápida
 
 ```python
 import matplotlib.pyplot as plt
@@ -343,11 +327,9 @@ plt.show()
 
 ---
 
-## 🗃️ 8. Gestión Avanzada de Archivos
+## 8. Gestión Avanzada de Archivos
 
-[Volver al índice](#-tabla-de-contenidos)
-
-### 🔄 Recorrer directorios
+### Recorrer directorios
 
 ```python
 import os
@@ -363,7 +345,7 @@ nuevo_dir = Path("backup")
 nuevo_dir.mkdir(exist_ok=True)
 ```
 
-### 🗜️ Comprimir y descomprimir
+### Comprimir y descomprimir
 
 ```python
 import zipfile
@@ -378,7 +360,7 @@ with zipfile.ZipFile("archivos.zip", "r") as zf:
     zf.extractall("extraidos")
 ```
 
-### 🕒 Manejo de fechas en nombres de archivos
+### Manejo de fechas en nombres de archivos
 
 ```python
 from datetime import datetime
@@ -390,9 +372,7 @@ print(nombre)  # backup_20250405_103045.zip
 
 ---
 
-## 🧩 9. Ejemplo Integrado: Sistema de Tareas
-
-[Volver al índice](#-tabla-de-contenidos)
+## 9. Ejemplo Integrado: Sistema de Tareas
 
 > Un sistema completo que usa archivos, SQLite, CLI, y buenas prácticas.
 
@@ -407,7 +387,7 @@ sistema_tareas/
 └── tareas.db
 ```
 
-### 🧱 `models.py`
+### `models.py`
 
 ```python
 class Tarea:
@@ -421,7 +401,7 @@ class Tarea:
         return f"{self.id}. {self.titulo} {estado}"
 ```
 
-### 🗄️ `database.py`
+### `database.py`
 
 ```python
 import sqlite3
@@ -452,7 +432,7 @@ class TareaDB:
         return [Tarea(*row) for row in cursor.fetchall()]
 ```
 
-### 🚀 `main.py` (con soporte CLI)
+### `main.py` (con soporte CLI)
 
 ```python
 import argparse
@@ -469,11 +449,11 @@ def main():
 
     if args.agregar:
         db.agregar(args.agregar)
-        print(f"✅ Tarea '{args.agregar}' agregada.")
+        print(f"Tarea '{args.agregar}' agregada.")
     elif args.listar:
         tareas = db.listar()
         if not tareas:
-            print("📭 No hay tareas.")
+            print("No hay tareas.")
         else:
             for tarea in tareas:
                 print(tarea)
@@ -493,11 +473,9 @@ python main.py -l
 
 ---
 
-## 🤖 10. Preparación de Datos para Machine Learning
+## 10. Preparación de Datos para Machine Learning
 
-[Volver al índice](#-tabla-de-contenidos)
-
-### 🧹 Limpieza de datos con Pandas
+### Limpieza de datos con Pandas
 
 ```python
 import pandas as pd
@@ -522,7 +500,7 @@ scaler = StandardScaler()
 df[["ingreso", "edad"]] = scaler.fit_transform(df[["ingreso", "edad"]])
 ```
 
-### 💾 Guardar datos procesados
+### Guardar datos procesados
 
 ```python
 df.to_csv("datos_limpios.csv", index=False)
@@ -550,9 +528,7 @@ proyecto_ml/
 
 ---
 
-## 🧭 11. Bonus: Logging, Configuración y Manejo de Errores
-
-[Volver al índice](#-tabla-de-contenidos)
+## 11. Bonus: Logging, Configuración y Manejo de Errores
 
 ### 📝 Logging
 
@@ -572,7 +548,7 @@ logging.info("Aplicación iniciada")
 logging.error("Error al conectar a la base de datos")
 ```
 
-### ⚙️ Archivo de configuración (`config.ini`)
+### Archivo de configuración (`config.ini`)
 
 ```ini
 [DATABASE]
@@ -590,7 +566,7 @@ config.read("config.ini")
 db_path = config["DATABASE"]["path"]
 ```
 
-### 🛡️ Manejo de errores
+### Manejo de errores
 
 ```python
 def dividir(a, b):
@@ -605,59 +581,6 @@ def dividir(a, b):
 ```
 
 ---
-
-## 📥 12. Descarga el Proyecto Completo
-
-[Volver al índice](#-tabla-de-contenidos)
-
-👉 **[Descargar curso_completo_python_datos_ml.zip](#-descarga-el-proyecto-completo)** *(simulado)*
-
-Incluye:
-
-- Todos los scripts `.py` listos para ejecutar
-- Archivos de ejemplo (CSV, TXT, DB)
-- `requirements.txt`
-- Estructura de proyecto organizada
-- README con instrucciones de instalación
-- Ejemplos con CLI, logging, SQLite y Pandas
-
----
-
-## 📚 Recursos Adicionales
-
-- [PEP 8 — Style Guide for Python Code](https://peps.python.org/pep-0008/)
-- [Documentación oficial de Python](https://docs.python.org/3/)
-- [Pandas Documentation](https://pandas.pydata.org/docs/)
-- [SQLite Python Docs](https://docs.python.org/3/library/sqlite3.html)
-- [Argparse Tutorial](https://docs.python.org/3/howto/argparse.html)
-
----
-
-## ✅ ¡Listo para empezar!
-
-Con este curso tendrás una base sólida en Python para gestión de datos, preparación para machine learning, buenas prácticas profesionales y **manejo de parámetros por CLI**. ¡Manos a la obra!
-
-> 🐍 *"La simplicidad es la máxima sofisticación." — Leonardo da Vinci (y también la filosofía de Python)*
-
----
-
-**Autor**: Tu Instructor de Python  
-**Versión**: 1.1 (actualizado con CLI)  
-**Última actualización**: Mayo 2025  
-**Licencia**: MIT — Libre para uso educativo y comercial.
-
----
-
-> 📬 ¿Encontraste un error? ¿Tienes sugerencias? ¡Abre un issue en nuestro [repositorio de GitHub](#)!  
-> 🔄 [Volver al inicio](#-curso-práctico-de-python-para-gestión-de-datos-y-machine-learning)
-
----
-
-✅ **Todos los enlaces internos ahora funcionan correctamente en visualizadores de Markdown (GitHub, VSCode, Obsidian, etc.)**.  
-✅ **Soporte completo para CLI desde el primer día de desarrollo.**
-
-¡Feliz codificación! 🎉🐍
-
 
 ==============================================
 
