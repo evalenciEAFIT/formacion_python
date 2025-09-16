@@ -50,9 +50,11 @@ if __name__ == "__main__":
 **Ejecución:**
 
 ```bash
+Comando:
 python cli_simple.py Ana 25
 
-Salida: Hola Ana, tienes 25 años.
+Salida:
+Hola Ana, tienes 25 años.
 ```
 
 ---
@@ -85,6 +87,7 @@ if __name__ == "__main__":
 **Ejecución:**
 
 ```bash
+Comando:
 python cli_avanzado.py -n "Carlos" -e 30 -v
 
 Salida:
@@ -95,7 +98,7 @@ Tienes 30 años.
 
 ---
 
-### 💡 Consejos para CLI
+### Consejos para CLI
 
 - Usa `--help` o `-h` para que argparse genere ayuda automática.
 - Valida tipos de datos (`type=int`, `type=float`, etc.).
@@ -105,7 +108,7 @@ Tienes 30 años.
 
 ---
 
-## ✅ 2. Buenas Prácticas de Programación en Python (incluyendo `main`)
+## 2. Buenas Prácticas de Programación en Python (incluyendo `main`)
 
 [Volver al índice](#-tabla-de-contenidos)
 
