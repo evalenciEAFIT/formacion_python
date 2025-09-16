@@ -480,7 +480,7 @@ print(nombre)  # backup_20250405_103045.zip
 ```
 
 
-##  8.1. Recorrer Directorios (con `pathlib` — forma moderna y recomendada)
+###  8.1. Recorrer Directorios (con `pathlib` — forma moderna y recomendada)
 
 ###  Ejemplo: `listar_csv_en_directorio.py`
 
@@ -533,7 +533,7 @@ if __name__ == "__main__":
 
 ---
 
-##  8.2. Crear Directorios (con estructura anidada)
+###  8.2. Crear Directorios (con estructura anidada)
 
 ###  Ejemplo: `crear_estructura_proyecto.py`
 
@@ -580,7 +580,7 @@ Creando estructura de directorios...
 
 ---
 
-##  8.3. Comprimir Archivos en ZIP (con manejo de errores)
+###  8.3. Comprimir Archivos en ZIP (con manejo de errores)
 
 ###  Ejemplo: `comprimir_csvs.py`
 
@@ -642,7 +642,7 @@ Creando backup: backup_csv_20250504_123045.zip
 ```
 
 
-## 8.4. Descomprimir Archivos ZIP (con manejo de errores y limpieza)
+### 8.4. Descomprimir Archivos ZIP (con manejo de errores y limpieza)
 
 ###  Ejemplo: `descomprimir_backup.py`
 
@@ -707,7 +707,7 @@ if __name__ == "__main__":
 
 ---
 
-## 8.5. Bonus: Copiar, Mover y Eliminar Archivos
+### 8.5. Bonus: Copiar, Mover y Eliminar Archivos
 
 ### Ejemplo: `gestion_archivos_bonus.py`
 
@@ -742,7 +742,7 @@ def limpiar_directorio_vacio(ruta):
 ```
 
 
-## Ejecución Recomendada (para probar todo en orden)
+### Ejecución Recomendada (para probar todo en orden)
 
 Crea un script `ejecutar_gestion_archivos.py`:
 
@@ -780,7 +780,7 @@ copiar_csv_a_procesados()
 ```
 ---
 
-## Estructura Final del Proyecto
+### Estructura Final del Proyecto
 
 ```
 gestion_archivos/
@@ -794,6 +794,8 @@ gestion_archivos/
 ├── gestion_archivos_bonus.py
 └── ejecutar_gestion_archivos.py  ← ¡Ejecuta todo en orden!
 ```
+
+---
 
 ## 9. Ejemplo Integrado: Sistema de Tareas
 
