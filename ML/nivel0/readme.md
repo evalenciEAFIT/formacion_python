@@ -936,7 +936,7 @@ class TareaDB:
 
 ---
 
-## 📄 9.3. `utils.py` — ¡FINALMENTE INCLUIDO! ✅
+## 📄 9.3. `utils.py`
 
 ```python
 import logging
@@ -989,7 +989,7 @@ Ejemplos:
 
 ---
 
-## 📄 9.4. `main.py` — CLI Completo y Mejorado
+## 📄 9.4. `main.py` 
 
 ```python
 import argparse
