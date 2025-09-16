@@ -1,18 +1,6 @@
-¡Genial! Aquí tienes la versión **actualizada y mejorada** del documento `.md`, con:
-
-✅ **Sección nueva: Cómo pasar parámetros por CLI al inicio del programa**  
-✅ **Mejora de enlaces internos** (anclas en Markdown para navegación dentro del mismo documento)  
-✅ **Índice interactivo con enlaces clickeables**  
-✅ **Ejemplo práctico de CLI con `argparse` y `sys.argv`**
-
----
-
 # 🐍 Curso Práctico de Python para Gestión de Datos y Machine Learning
+Nivel 0
 
-> **📥 [Descargar curso completo en .zip](#-descarga-el-proyecto-completo)**  
-> *Incluye todos los ejemplos prácticos, scripts y datasets listos para ejecutar.*
-
----
 
 ## 📚 Tabla de Contenidos
 
