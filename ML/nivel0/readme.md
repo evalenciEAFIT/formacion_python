@@ -51,7 +51,8 @@ if __name__ == "__main__":
 
 ```bash
 python cli_simple.py Ana 25
-# Salida: Hola Ana, tienes 25 años.
+
+Salida: Hola Ana, tienes 25 años.
 ```
 
 ---
@@ -85,7 +86,8 @@ if __name__ == "__main__":
 
 ```bash
 python cli_avanzado.py -n "Carlos" -e 30 -v
-#Salida:
+
+Salida:
 [INFO] Modo verboso activado
 ¡Hola Carlos!
 Tienes 30 años.
