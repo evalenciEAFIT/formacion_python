@@ -282,8 +282,8 @@ cursor.execute(
 
 ---
 
-### 1.4. **Consultar Datos (SELECT)**
-La sentencia `SELECT` es la herramienta principal para recuperar datos de una tabla. Su estructura básica es:
+### **1.4. Consultar Datos con `SELECT`**
+La sentencia `SELECT` recupera información de una tabla. Su estructura básica es:
 
 ```sql
 SELECT columnas_a_mostrar
@@ -291,80 +291,158 @@ FROM nombre_tabla
 [condiciones];
 ```
 
-### **Ejemplo 1: Ver todos los productos**
-```sql
-SELECT * FROM productos;
-```
+---
 
-- **`SELECT *`**:  
-  El asterisco (`*`) significa "**todas las columnas**" de la tabla.  
-  Equivalente a pedir: *"Muéstrame todo lo que hay en la tabla"*.
-
-- **Resultado**:  
-  Devuelve **todas las filas y columnas** de la tabla `productos`.
+### **Parámetros Comunes de `SELECT`**
+| Parámetro       | Descripción                                      | Ejemplo                          |
+|----------------|--------------------------------------------------|----------------------------------|
+| `*`            | Todas las columnas                               | `SELECT * FROM productos`        |
+| `columna1, columna2` | Columnas específicas                         | `SELECT nombre, precio FROM productos` |
+| `WHERE`        | Filtro de condiciones                            | `WHERE precio < 500`             |
+| `ORDER BY`     | Ordenamiento de resultados                      | `ORDER BY precio DESC`          |
+| `LIMIT`        | Número máximo de filas a devolver                | `LIMIT 10`                       |
+| `LIKE`         | Coincidencia de patrones (textuales)             | `WHERE nombre LIKE '%laptop%'`   |
 
 ---
 
-### **Ejemplo 2: Filtrar productos baratos**
-```sql
-SELECT nombre, precio FROM productos WHERE precio < 500;
+### **Ejemplo Completo en Python**
+Vamos a crear una base de datos, insertar datos y realizar consultas variadas:
+
+```python
+import sqlite3
+
+# ========================================
+# 1. Conectar a la base de datos
+# ========================================
+conexion = sqlite3.connect('tienda.db')
+cursor = conexion.cursor()
+
+# ========================================
+# 2. Crear tabla (si no existe)
+# ========================================
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS productos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    precio REAL CHECK(precio > 0),
+    categoria TEXT
+)
+''')
+
+# ========================================
+# 3. Insertar datos de ejemplo
+# ========================================
+productos = [
+    ('Laptop', 1200.00, 'Electrónica'),
+    ('Mouse', 25.50, 'Accesorios'),
+    ('Teclado', 45.99, 'Accesorios'),
+    ('Monitor', 300.00, 'Electrónica'),
+    ('Audífonos', 80.00, 'Accesorios')
+]
+
+cursor.executemany('INSERT INTO productos (nombre, precio, categoria) VALUES (?, ?, ?)', productos)
+conexion.commit()
+
+# ========================================
+# 4. Consultas Variadas
+# ========================================
+
+# CONSULTA 1: Ver todos los productos
+print("=== Todos los productos ===")
+cursor.execute('SELECT * FROM productos')
+for fila in cursor.fetchall():
+    print(fila)
+
+# CONSULTA 2: Filtrar productos baratos (< $100)
+print("\n=== Productos baratos (< $100) ===")
+cursor.execute('SELECT nombre, precio FROM productos WHERE precio < 100')
+for fila in cursor.fetchall():
+    print(f"Nombre: {fila[0]}, Precio: ${fila[1]:.2f}")
+
+# CONSULTA 3: Ordenar por precio descendente
+print("\n=== Productos ordenados por precio (mayor a menor) ===")
+cursor.execute('SELECT nombre, precio FROM productos ORDER BY precio DESC')
+for fila in cursor.fetchall():
+    print(f"Nombre: {fila[0]}, Precio: ${fila[1]:.2f}")
+
+# CONSULTA 4: Buscar productos con 'ote' en el nombre
+print("\n=== Productos con 'ote' en el nombre ===")
+cursor.execute("SELECT * FROM productos WHERE nombre LIKE '%ote%'")
+for fila in cursor.fetchall():
+    print(fila)
+
+# ========================================
+# 5. Cerrar conexión
+# ========================================
+conexion.close()
 ```
 
-- **`SELECT nombre, precio`**:  
-  Especifica **qué columnas mostrar** (solo `nombre` y `precio`, no todas).
-
-- **`WHERE precio < 500`**:  
-  Agrega una **condición de filtro**. Solo se muestran filas donde el `precio` sea menor a 500.
-
-- **Resultado**:  
-  Devuelve **solo los productos económicos** con su nombre y precio.
-
-
-### **Ejemplo 3: Ordenar por precio descendente**
-```sql
-SELECT * FROM productos ORDER BY precio DESC;
-```
-
-- **`ORDER BY precio`**:  
-  Ordena los resultados basándose en la columna `precio`.
-
-- **`DESC`**:  
-  Significa "**descendente**" (de mayor a menor).  
-  Si omites `DESC`, el orden será ascendente (`ASC`).
-
-- **Resultado**:  
-  Devuelve **todos los productos ordenados desde el más caro al más barato**.
 ---
 
-###  **Conceptos Clave Adicionales**
-1. **Columnas vs. `*`**:  
-   - Usar `*` es útil para pruebas rápidas, pero en producción **especifica columnas** para mejorar rendimiento.
+### **Resultados Esperados**
+```
+=== Todos los productos ===
+(1, 'Laptop', 1200.0, 'Electrónica')
+(2, 'Mouse', 25.5, 'Accesorios')
+(3, 'Teclado', 45.99, 'Accesorios')
+(4, 'Monitor', 300.0, 'Electrónica')
+(5, 'Audífonos', 80.0, 'Accesorios')
 
-2. **Múltiples condiciones**:  
-   ```sql
-   SELECT * FROM productos 
-   WHERE precio < 500 AND categoria = 'Electrónica';
+=== Productos baratos (< $100) ===
+Nombre: Mouse, Precio: $25.50
+Nombre: Teclado, Precio: $45.99
+Nombre: Audífonos, Precio: $80.00
+
+=== Productos ordenados por precio (mayor a menor) ===
+Nombre: Laptop, Precio: $1200.00
+Nombre: Monitor, Precio: $300.00
+Nombre: Audífonos, Precio: $80.00
+Nombre: Teclado, Precio: $45.99
+Nombre: Mouse, Precio: $25.50
+
+=== Productos con 'ote' en el nombre ===
+(4, 'Monitor', 300.0, 'Electrónica')
+```
+
+---
+
+### **Explicación del Código**
+1. **Conexión y creación de tabla**:  
+   ```python
+   conexion = sqlite3.connect('tienda.db')
+   cursor = conexion.cursor()
+   cursor.execute('''
+   CREATE TABLE IF NOT EXISTS productos (...);
+   ''')
    ```
 
-3. **Combinar filtros y órdenes**:  
-   ```sql
-   SELECT nombre, precio 
-   FROM productos 
-   WHERE precio > 100 
-   ORDER BY precio ASC;
+2. **Inserción masiva de datos**:  
+   ```python
+   cursor.executemany('INSERT INTO productos (...) VALUES (?, ?, ?)', productos)
+   ```
+
+3. **Consultas con parámetros**:  
+   - `fetchall()`: Obtiene todos los resultados.
+   - `LIKE '%patron%'`: Busca cadenas que contengan el patrón.
+
+4. **Cierre seguro**:  
+   ```python
+   conexion.commit()
+   conexion.close()
    ```
 
 ---
 
-### Resumen
-| Comando          | Propósito                               | Ejemplo                          |
-|------------------|-----------------------------------------|----------------------------------|
-| `SELECT *`       | Todas las columnas                       | `SELECT * FROM productos`        |
-| `SELECT col1, col2` | Columnas específicas                   | `SELECT nombre, precio FROM...`  |
-| `WHERE condicion` | Filtrar resultados                       | `WHERE precio < 500`             |
-| `ORDER BY col`   | Ordenar resultados                      | `ORDER BY precio DESC`          |
+###  **Consejos Adicionales**
+- **Parametrización segura**: Usa `?` en lugar de concatenar strings para evitar inyecciones SQL.
+- **Uso de `with`**: Para manejar conexiones automáticamente:
+  ```python
+  with sqlite3.connect('tienda.db') as conexion:
+      cursor = conexion.cursor()
+      # Realizar operaciones...
+  ```
 
-
+---
 
 ### 2. **Agrupación con `GROUP BY`**
 ```sql
