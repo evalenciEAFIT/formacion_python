@@ -48,8 +48,8 @@ La instrucción `CREATE TABLE` define la estructura de una tabla. Su formato gen
 
 ```sql
 CREATE TABLE nombre_tabla (
-    columna1 tipo_dato constraintos,
-    columna2 tipo_dato constraintos,
+    columna1 tipo_dato restricciones,
+    columna2 tipo_dato restricciones,
     ...
 );
 ```
@@ -66,8 +66,8 @@ SQLite utiliza **tipos dinámicos** (duck typing), pero recomienda usar estos ti
 | **NUMERIC** | Números con precisión fija           | `123.45`              |
 
 
-###  **Constraintos (Reglas Adicionales)**
-Los constraintos definen reglas para los datos:
+###  **restricciones (Reglas Adicionales)**
+Los restricciones definen reglas para los datos:
 
 | Constraint       | Descripción                                  | Ejemplo                     |
 |------------------|---------------------------------------------|----------------------------|
@@ -79,7 +79,7 @@ Los constraintos definen reglas para los datos:
 | `DEFAULT`        | Valor predeterminado si no se especifica    | `estado TEXT DEFAULT 'activo'` |
 
 
-### **Ejemplo Completo: Crear Tabla de Productos**
+### **Ejemplo: Crear Tabla de Productos**
 ```sql
 CREATE TABLE productos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,7 +99,7 @@ CREATE TABLE productos (
 
 ### **Buenas Prácticas**
 - Usa nombres descriptivos para tablas y columnas.
-- Define constraintos para mantener la integridad de datos.
+- Define restricciones para mantener la integridad de datos.
 - Documenta la estructura de tu base de datos.
 
 
