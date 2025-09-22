@@ -377,7 +377,6 @@ for fila in cursor.fetchall():
 conexion.close()
 ```
 
----
 
 ### **Resultados Esperados**
 ```
@@ -404,7 +403,6 @@ Nombre: Mouse, Precio: $25.50
 (4, 'Monitor', 300.0, 'Electrónica')
 ```
 
----
 
 ### **Explicación del Código**
 1. **Conexión y creación de tabla**:  
@@ -430,27 +428,131 @@ Nombre: Mouse, Precio: $25.50
    conexion.commit()
    conexion.close()
    ```
-
----
-
-###  **Consejos Adicionales**
-- **Parametrización segura**: Usa `?` en lugar de concatenar strings para evitar inyecciones SQL.
-- **Uso de `with`**: Para manejar conexiones automáticamente:
-  ```python
-  with sqlite3.connect('tienda.db') as conexion:
-      cursor = conexion.cursor()
-      # Realizar operaciones...
-  ```
-
 ---
 
 ### 2. **Agrupación con `GROUP BY`**
+La cláusula `GROUP BY` agrupa filas con valores similares en columnas específicas, permitiendo resumir datos mediante funciones agregadas.
+
+---
+
+### **Sintaxis Básica**
+```sql
+SELECT columna_agrupadora, función_agregada(columna)
+FROM nombre_tabla
+GROUP BY columna_agrupadora;
+```
+
+### **Explicación Detallada**
 ```sql
 SELECT categoria, COUNT(*) AS total_productos 
 FROM productos 
 GROUP BY categoria;
 ```
-**Explicación:** Cuenta cuántos productos hay en cada categoría (ej: 3 en "Electrónica", 2 en "Accesorios").
+
+| Componente          | Descripción                                                                 |
+|---------------------|-----------------------------------------------------------------------------|
+| `SELECT categoria`   | Selecciona la columna por la que se agruparán los datos.                   |
+| `COUNT(*)`           | Función agregada que cuenta el número de filas en cada grupo.              |
+| `AS total_productos` | Asigna un alias a la columna resultante (`total_productos` para facilitar lectura). |
+| `FROM productos`     | Indica la tabla fuente de los datos.                                        |
+| `GROUP BY categoria` | Agrupa las filas donde la columna `categoria` tenga el mismo valor.         |
+
+---
+
+### **Ejemplo Práctico**
+Supongamos una tabla `productos` con estos datos:
+
+| id | nombre       | precio | categoria   |
+|----|--------------|--------|-------------|
+| 1  | Laptop       | 1200   | Electrónica |
+| 2  | Mouse        | 25     | Accesorios  |
+| 3  | Teclado      | 45     | Accesorios  |
+| 4  | Monitor      | 300    | Electrónica |
+| 5  | Auriculares  | 80     | Accesorios  |
+
+#### **Consulta:**
+```sql
+SELECT categoria, COUNT(*) AS total_productos 
+FROM productos 
+GROUP BY categoria;
+```
+
+#### **Resultado:**
+| categoria   | total_productos |
+|-------------|-----------------|
+| Electrónica | 2               |
+| Accesorios  | 3               |
+
+---
+
+### ⚠️ **Reglas Importantes**
+1. **Columnas en `SELECT`**:  
+   - Si usas `GROUP BY`, las columnas en `SELECT` deben estar en `GROUP BY` o ser funciones agregadas (`SUM()`, `AVG()`, etc.).
+
+2. **Funciones Agregadas Comunes**:
+   | Función       | Descripción                          |
+   |---------------|--------------------------------------|
+   | `COUNT(*)`    | Cuenta el número de filas en el grupo. |
+   | `SUM(campo)`  | Suma los valores de un campo.         |
+   | `AVG(campo)`   | Calcula el promedio de un campo.      |
+   | `MAX(campo)`   | Encuentra el valor máximo.            |
+   | `MIN(campo)`   | Encuentra el valor mínimo.            |
+
+---
+
+### **Ejemplo en Python**
+```python
+import sqlite3
+
+# Conectar a la base de datos
+conexion = sqlite3.connect('tienda.db')
+cursor = conexion.cursor()
+
+# Consulta con GROUP BY
+cursor.execute('''
+SELECT categoria, COUNT(*) AS total_productos 
+FROM productos 
+GROUP BY categoria
+''')
+
+# Mostrar resultados
+print("Productos por categoría:")
+for fila in cursor.fetchall():
+    print(f"Categoría: {fila[0]}, Total: {fila[1]}")
+
+conexion.close()
+```
+
+#### **Salida Esperada:**
+```
+Productos por categoría:
+Categoría: Electrónica, Total: 2
+Categoría: Accesorios, Total: 3
+```
+
+---
+
+###  **Casos de Uso Avanzado**
+1. **Filtrar grupos con `HAVING`** (similar a `WHERE` para grupos):  
+   ```sql
+   SELECT categoria, AVG(precio) AS precio_promedio
+   FROM productos
+   GROUP BY categoria
+   HAVING AVG(precio) > 100;  -- Solo categorías con precio promedio > $100
+   ```
+
+2. **Agrupar por múltiples columnas**:  
+   ```sql
+   SELECT categoria, precio, COUNT(*)
+   FROM productos
+   GROUP BY categoria, precio;  -- Agrupa por categoría Y precio
+   ```
+
+
+### **Errores Comunes**
+- **Error**: `SELECT nombre, COUNT(*) FROM productos GROUP BY categoria;`  
+  ❌ **Solución**: Incluir `nombre` en `GROUP BY` o usar una función agregada (`MIN(nombre)`, `MAX(nombre)`).
+
 
 ---
 
