@@ -28,149 +28,124 @@ Este nivel cubre técnicas para trabajar con datos utilizando **SQL (SQLite)**, 
 
 ## Ejemplos de Código
 -----------------
-# SQL
+# 1. SQL con SQLite
 
-## 🔧 Comandos Básicos
-### 1. **Crear una Base de Datos**
+## 🔧 Comandos Básicos (Explicados Simply)
+
+### 1.1. **Crear una Base de Datos**
 ```sql
--- Crea una nueva base de datos (se genera automáticamente al conectarse)
+-- Crea un archivo de base de datos (.db)
 sqlite3 mi_base_de_datos.db
 ```
+**Explicación:** Esto genera un archivo llamado `mi_base_de_datos.db` donde se guardarán tus tablas y datos.
 
-```python
-# Python: Conectar a una base de datos (crea el archivo si no existe)
-import sqlite3
-
-conexion = sqlite3.connect('mi_base_de_datos.db')
-print("Base de datos creada exitosamente")
-conexion.close()
-```
 ---
-### 2. **Crear Tablas**
+
+### 1.2. **Crear Tablas**
+
+### **Crear Tablas en SQLite: Sintaxis Básica**
+La instrucción `CREATE TABLE` define la estructura de una tabla. Su formato general es:
+
+```sql
+CREATE TABLE nombre_tabla (
+    columna1 tipo_dato constraintos,
+    columna2 tipo_dato constraintos,
+    ...
+);
+```
+
+### **Tipos de Datos en SQLite**
+SQLite utiliza **tipos dinámicos** (duck typing), pero recomienda usar estos tipos principales:
+
+| Tipo       | Descripción                          | Ejemplo               |
+|------------|--------------------------------------|-----------------------|
+| **INTEGER** | Números enteros                      | `25`, `-10`           |
+| **REAL**    | Números decimales                    | `3.14`, `-0.001`      |
+| **TEXT**    | Cadenas de texto                     | `'Juan'`, `'Hola'`    |
+| **BLOB**    | Datos binarios (imágenes, archivos) | Datos crudos          |
+| **NUMERIC** | Números con precisión fija           | `123.45`              |
+
+
+###  **Constraintos (Reglas Adicionales)**
+Los constraintos definen reglas para los datos:
+
+| Constraint       | Descripción                                  | Ejemplo                     |
+|------------------|---------------------------------------------|----------------------------|
+| `PRIMARY KEY`    | Identificador único (no repetible)           | `id INTEGER PRIMARY KEY`   |
+| `AUTOINCREMENT`  | ID se genera automáticamente                | `id INTEGER PRIMARY KEY AUTOINCREMENT` |
+| `NOT NULL`       | Campo obligatorio                           | `nombre TEXT NOT NULL`     |
+| `UNIQUE`         | Valor único en toda la tabla                | `email TEXT UNIQUE`        |
+| `CHECK`          | Validación personalizada                     | `edad INTEGER CHECK(edad >= 18)` |
+| `DEFAULT`        | Valor predeterminado si no se especifica    | `estado TEXT DEFAULT 'activo'` |
+
+
+### **Ejemplo Completo: Crear Tabla de Productos**
 ```sql
 CREATE TABLE productos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT NOT NULL,
     precio REAL CHECK(precio > 0),
-    categoria TEXT DEFAULT 'General'
+    stock INTEGER DEFAULT 0,
+    fecha_vencimiento DATE
 );
 ```
 
-```python
-# Python: Crear una tabla
-import sqlite3
+#### Explicación:
+1. **`id`**: Identificador único autoincremental.
+2. **`nombre`**: Texto obligatorio (no puede estar vacío).
+3. **`precio`**: Número decimal mayor a 0.
+4. **`stock`**: Entero con valor predeterminado `0`.
+5. **`fecha_vencimiento`**: Fecha en formato `YYYY-MM-DD`.
 
-conexion = sqlite3.connect('mi_base_de_datos.db')
-cursor = conexion.cursor()
+### **Buenas Prácticas**
+- Usa nombres descriptivos para tablas y columnas.
+- Define constraintos para mantener la integridad de datos.
+- Documenta la estructura de tu base de datos.
 
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS productos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT NOT NULL,
-    precio REAL CHECK(precio > 0),
-    categoria TEXT DEFAULT 'General'
-)
-''')
-
-conexion.commit()  # Guardar cambios
-conexion.close()
-print("Tabla 'productos' creada")
-```
 
 ---
 
-### 3. **Insertar Datos**
+-------------------
+```sql
+CREATE TABLE productos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- Identificador único automático
+    nombre TEXT NOT NULL,                   -- Nombre del producto (obligatorio)
+    precio REAL CHECK(precio > 0),          -- Precio (debe ser positivo)
+    categoria TEXT DEFAULT 'General'       -- Categoría (por defecto "General")
+);
+```
+**Explicación:** Creamos una tabla llamada `productos` con 4 columnas:
+- `id`: Número único para cada producto (se incrementa solo).
+- `nombre`: Texto obligatorio (no puede estar vacío).
+- `precio`: Número decimal que debe ser mayor a 0.
+- `categoria`: Texto con valor predeterminado "General".
+
+---
+
+### 1.3. **Insertar Datos**
 ```sql
 INSERT INTO productos (nombre, precio, categoria)
 VALUES ('Laptop', 1200.00, 'Electrónica');
 ```
-
-```python
-# Python: Insertar datos (usando parámetros para evitar inyección SQL)
-import sqlite3
-
-conexion = sqlite3.connect('mi_base_de_datos.db')
-cursor = conexion.cursor()
-
-datos = ('Laptop', 1200.00, 'Electrónica')
-cursor.execute('''
-INSERT INTO productos (nombre, precio, categoria)
-VALUES (?, ?, ?)
-''', datos)
-
-conexion.commit()
-conexion.close()
-print("Dato insertado correctamente")
-```
+**Explicación:** Agregamos un nuevo producto a la tabla `productos`. Especificamos los valores para `nombre`, `precio` y `categoria`.
 
 ---
 
-### 4. **Consultar Datos (SELECT)**
+### 1.4. **Consultar Datos (SELECT)**
 ```sql
--- Seleccionar todas las columnas
+-- Ver todos los productos
 SELECT * FROM productos;
 
--- Filtrar resultados
+-- Filtrar productos baratos
 SELECT nombre, precio FROM productos WHERE precio < 500;
 
--- Ordenar resultados
+-- Ordenar por precio descendente
 SELECT * FROM productos ORDER BY precio DESC;
 ```
-
-```python
-# Python: Consultar datos
-import sqlite3
-
-conexion = sqlite3.connect('mi_base_de_datos.db')
-cursor = conexion.cursor()
-
-# 1. Seleccionar todas las columnas
-cursor.execute('SELECT * FROM productos')
-todos_los_productos = cursor.fetchall()
-print("Todos los productos:", todos_los_productos)
-
-# 2. Filtrar resultados
-cursor.execute('SELECT nombre, precio FROM productos WHERE precio < ?', (500,))
-productos_baratos = cursor.fetchall()
-print("Productos baratos:", productos_baratos)
-
-# 3. Ordenar resultados
-cursor.execute('SELECT * FROM productos ORDER BY precio DESC')
-productos_ordenados = cursor.fetchall()
-print("Productos ordenados por precio:", productos_ordenados)
-
-conexion.close()
-```
-
----
-
-## ⚡ Consultas Avanzadas
-
-### 1. **Filtrado con `WHERE`**
-```sql
-SELECT * FROM productos 
-WHERE categoria = 'Electrónica' AND precio BETWEEN 800 AND 1500;
-```
-
-```python
-# Python: Filtrado avanzado
-import sqlite3
-
-conexion = sqlite3.connect('mi_base_de_datos.db')
-cursor = conexion.cursor()
-
-cursor.execute('''
-SELECT * FROM productos 
-WHERE categoria = ? AND precio BETWEEN ? AND ?
-''', ('Electrónica', 800, 1500))
-
-resultado = cursor.fetchall()
-print("Productos electrónicos entre $800-$1500:", resultado)
-
-conexion.close()
-```
-
----
+**Explicación:**
+- `SELECT *`: Trae todas las columnas.
+- `WHERE precio < 500`: Solo muestra productos con precio menor a $500.
+- `ORDER BY precio DESC`: Ordena de mayor a menor precio.
 
 ### 2. **Agrupación con `GROUP BY`**
 ```sql
@@ -178,25 +153,7 @@ SELECT categoria, COUNT(*) AS total_productos
 FROM productos 
 GROUP BY categoria;
 ```
-
-```python
-# Python: Agrupación con GROUP BY
-import sqlite3
-
-conexion = sqlite3.connect('mi_base_de_datos.db')
-cursor = conexion.cursor()
-
-cursor.execute('''
-SELECT categoria, COUNT(*) AS total_productos 
-FROM productos 
-GROUP BY categoria
-''')
-
-for categoria, total in cursor.fetchall():
-    print(f"Categoría '{categoria}': {total} productos")
-
-conexion.close()
-```
+**Explicación:** Cuenta cuántos productos hay en cada categoría (ej: 3 en "Electrónica", 2 en "Accesorios").
 
 ---
 
@@ -206,113 +163,79 @@ SELECT p.nombre, pr.proveedor
 FROM productos p
 INNER JOIN proveedores pr ON p.id = pr.producto_id;
 ```
-
-```python
-# Python: JOIN entre tablas
-import sqlite3
-
-conexion = sqlite3.connect('mi_base_de_datos.db')
-cursor = conexion.cursor()
-
-cursor.execute('''
-SELECT p.nombre, pr.proveedor 
-FROM productos p
-INNER JOIN proveedores pr ON p.id = pr.producto_id
-''')
-
-for nombre, proveedor in cursor.fetchall():
-    print(f"{nombre} - Proveedor: {proveedor}")
-
-conexion.close()
-```
+**Explicación:** Combina información de dos tablas:
+- `productos` (p) y `proveedores` (pr).
+- Une filas donde `producto_id` coincide.
 
 ---
 
 ### 4. **Actualizar y Eliminar**
 ```sql
--- Actualizar registros
+-- Cambiar precio de una laptop
 UPDATE productos SET precio = 1150.00 WHERE nombre = 'Laptop';
 
--- Eliminar registros
+-- Borrar productos baratos
 DELETE FROM productos WHERE precio < 100;
 ```
+**Explicación:**
+- `UPDATE`: Modifica datos existentes.
+- `DELETE`: Borra registros que cumplan una condición.
 
+---
+
+## 💻 Código Python Simplificado
+
+### Conectar a la Base de Datos
 ```python
-# Python: Actualizar y eliminar datos
 import sqlite3
 
-conexion = sqlite3.connect('mi_base_de_datos.db')
+# Crea/conecta a la base de datos
+conexion = sqlite3.connect('mi_base_de_datos.db')  
+print("Base de datos conectada")
+```
+
+### Crear una Tabla
+```python
 cursor = conexion.cursor()
 
-# Actualizar
+# Crea tabla si no existe
 cursor.execute('''
-UPDATE productos SET precio = ? WHERE nombre = ?
-''', (1150.00, 'Laptop'))
-conexion.commit()
-
-# Eliminar
-cursor.execute('DELETE FROM productos WHERE precio < ?', (100,))
-conexion.commit()
-
-print("Datos actualizados/eliminados")
-conexion.close()
+CREATE TABLE IF NOT EXISTS productos (
+    id INTEGER PRIMARY KEY,
+    nombre TEXT,
+    precio REAL
+)
+''')
 ```
 
----
-
-## 💻 Ejecución Completa desde Python
+### Insertar Datos Seguros
 ```python
-import sqlite3
+# Usamos parámetros para evitar errores
+datos = ('Mouse', 25.50)
+cursor.execute('INSERT INTO productos (nombre, precio) VALUES (?, ?)', datos)
+```
 
-def main():
-    # Conectar a la base de datos
-    conexion = sqlite3.connect('tienda.db')
-    cursor = conexion.cursor()
-    
-    # Crear tabla (si no existe)
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS productos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL,
-        precio REAL CHECK(precio > 0),
-        categoria TEXT DEFAULT 'General'
-    )
-    ''')
-    
-    # Insertar datos de ejemplo
-    datos = [
-        ('Laptop', 1200.00, 'Electrónica'),
-        ('Mouse', 25.50, 'Accesorios'),
-        ('Teclado', 45.99, 'Accesorios')
-    ]
-    
-    cursor.executemany('INSERT INTO productos (nombre, precio, categoria) VALUES (?, ?, ?)', datos)
-    
-    # Consultar todos los productos
-    cursor.execute('SELECT * FROM productos')
-    for fila in cursor.fetchall():
-        print(fila)
-    
-    # Cerrar conexión
-    conexion.commit()
-    conexion.close()
+### Consultar Datos
+```python
+# Obtener todos los productos
+cursor.execute('SELECT * FROM productos')
+productos = cursor.fetchall()  
 
-if __name__ == "__main__":
-    main()
+# Mostrar resultados
+for producto in productos:
+    print(f"Producto: {producto[1]}, Precio: ${producto[2]}")
 ```
 
 ---
 
-## ✅ Práctica Recomendada
-1. **Crear un sistema de inventario** con tablas `productos`, `proveedores`, y `ventas`.
-2. **Implementar consultas** para:
-   - Listar productos con stock bajo.
-   - Calcular ingresos totales por categoría.
-   - Generar reportes mensuales de ventas.
+## ✅ Consejos Clave
+1. **Seguridad:** Siempre usa parámetros (`?`) en Python para evitar inyecciones SQL.
+2. **Practica:** Crea tablas pequeñas y prueba consultas gradualmente.
+3. **Documenta:** Comenta tu código para entenderlo luego.
 
----
+¡Empieza con ejemplos sencillos y ve complejizando! 🚀
 
-¡Experimenta con estos ejemplos y combina varias consultas para resolver problemas reales! 🚀
+
 -----------------
 
 
