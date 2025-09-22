@@ -1,9 +1,9 @@
 # 🐍 Curso Práctico de Python para Gestión de Datos y Machine Learning
 Nivel 0 - nivelación
 
-[📚 Nivel 0: Buenas prácticas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel0) | 
-[🔍 Nivel 1: Manejo de datos](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel1) | 
-[🏠 Repositorio](https://github.com/evalenciEAFIT/formacion_python)
+[Nivel 0: Buenas prácticas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel0) | 
+[Nivel 1: Manejo de datos](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel1) | 
+[Repositorio](https://github.com/evalenciEAFIT/formacion_python)
 
 ## Tabla de Contenidos
 
