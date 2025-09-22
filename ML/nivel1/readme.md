@@ -66,7 +66,7 @@ SQLite utiliza **tipos dinámicos** (duck typing), pero recomienda usar estos ti
 | **NUMERIC** | Números con precisión fija           | `123.45`              |
 
 
-###  **restricciones (Reglas Adicionales)**
+###  **Restricciones (Reglas Adicionales)**
 Los restricciones definen reglas para los datos:
 
 | Constraint       | Descripción                                  | Ejemplo                     |
@@ -103,6 +103,119 @@ CREATE TABLE productos (
 - Documenta la estructura de tu base de datos.
 ---
 
+
+## Ejemplo completo
+
+```python
+import sqlite3  # 1️⃣ Importamos el módulo para conectar con SQLite
+
+# ========================================
+# PASO 1: Conectar a la base de datos
+# ========================================
+# Creamos una conexión a la base de datos 'tienda.db'
+# Si el archivo no existe, SQLite lo crea automáticamente
+conexion = sqlite3.connect('tienda.db')  
+cursor = conexion.cursor()  # Objeto para ejecutar comandos SQL
+
+print("✅ Conexión establecida con 'tienda.db'")
+
+# ========================================
+# PASO 2: Crear la tabla con restricciones
+# ========================================
+# Usamos execute() para enviar el comando SQL
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS productos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 👉 Clave única autoincremental
+    nombre TEXT NOT NULL,                 -- 👉 Texto obligatorio (no puede ser NULL)
+    precio REAL CHECK(precio > 0),         -- 👉 Número real > 0 (evita precios negativos)
+    stock INTEGER DEFAULT 0,              -- 👉 Entero con valor predeterminado 0
+    fecha_vencimiento DATE                 -- 👉 Fecha en formato AAAA-MM-DD
+)
+''')
+
+print("✅ Tabla 'productos' creada con éxito!")
+
+# ========================================
+# PASO 3: Verificar la estructura (opcional)
+# ========================================
+# Podemos inspeccionar la tabla para confirmar
+cursor.execute("PRAGMA table_info(productos)")
+columnas = cursor.fetchall()
+
+print("\n📋 Estructura de la tabla:")
+for col in columnas:
+    print(f"- {col[1]} ({col[2]})")  # Muestra nombre y tipo de dato
+
+# ========================================
+# PASO 4: Guardar cambios y cerrar
+# ========================================
+conexion.commit()  # ⚠️ ¡Crucial! Confirma los cambios en la base de datos
+conexion.close()   # Cierra la conexión para liberar recursos
+
+print("\n🔒 Conexión cerrada. ¡Todo listo!")
+```
+
+---
+
+### Explicación Detallada:
+1. **Importar SQLite**  
+   ```python
+   import sqlite3
+   ```
+   - Necesario para interactuar con bases de datos SQLite.
+
+2. **Conectar a la base de datos**  
+   ```python
+   conexion = sqlite3.connect('tienda.db')
+   cursor = conexion.cursor()
+   ```
+   - `connect()` crea o abre el archivo `tienda.db`.
+   - `cursor` es como un "puntero" para ejecutar comandos SQL.
+
+3. **Crear la tabla**  
+   ```python
+   cursor.execute('''
+   CREATE TABLE IF NOT EXISTS productos (...);
+   ''')
+   ```
+   - `IF NOT EXISTS`: Evita errores si la tabla ya existe.
+   - Restricciones clave:
+     - `PRIMARY KEY AUTOINCREMENT`: IDs únicos automáticos.
+     - `NOT NULL`: Campo obligatorio (no puede quedar vacío).
+     - `CHECK(precio > 0)`: Valida que el precio sea positivo.
+     - `DEFAULT 0`: Si no se especifica `stock`, usa `0`.
+
+4. **Verificar la estructura**  
+   ```python
+   cursor.execute("PRAGMA table_info(productos)")
+   ```
+   - `PRAGMA` es un comando especial de SQLite para obtener metadatos.
+   - Muestra detalles de cada columna (nombre, tipo, restricciones).
+
+5. **Guardar y cerrar**  
+   ```python
+   conexion.commit()  # Guarda los cambios
+   conexion.close()   # Libera memoria
+   ```
+
+---
+
+### 🚀 Resultado Al Ejecutar:
+```
+✅ Conexión establecida con 'tienda.db'
+✅ Tabla 'productos' creada con éxito!
+
+📋 Estructura de la tabla:
+- id (INTEGER)
+- nombre (TEXT)
+- precio (REAL)
+- stock (INTEGER)
+- fecha_vencimiento (DATE)
+
+🔒 Conexión cerrada. ¡Todo listo!
+```
+
+---
 
 ### 1.3. **Insertar Datos**
 ### **Estructura de `INSERT INTO`**
