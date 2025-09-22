@@ -30,7 +30,7 @@ Este nivel cubre técnicas para trabajar con datos utilizando **SQL (SQLite)**, 
 -----------------
 # 1. SQL con SQLite
 
-## 🔧 Comandos Básicos (Explicados Simply)
+## Comandos Básicos (Explicados Simply)
 
 ### 1.1. **Crear una Base de Datos**
 ```sql
@@ -101,51 +101,177 @@ CREATE TABLE productos (
 - Usa nombres descriptivos para tablas y columnas.
 - Define restricciones para mantener la integridad de datos.
 - Documenta la estructura de tu base de datos.
-
-
 ---
 
--------------------
-```sql
-CREATE TABLE productos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- Identificador único automático
-    nombre TEXT NOT NULL,                   -- Nombre del producto (obligatorio)
-    precio REAL CHECK(precio > 0),          -- Precio (debe ser positivo)
-    categoria TEXT DEFAULT 'General'       -- Categoría (por defecto "General")
-);
-```
-**Explicación:** Creamos una tabla llamada `productos` con 4 columnas:
-- `id`: Número único para cada producto (se incrementa solo).
-- `nombre`: Texto obligatorio (no puede estar vacío).
-- `precio`: Número decimal que debe ser mayor a 0.
-- `categoria`: Texto con valor predeterminado "General".
-
----
 
 ### 1.3. **Insertar Datos**
+### **Estructura de `INSERT INTO`**
+
+La sentencia `INSERT INTO` se usa para **agregar nuevos registros (filas) a una tabla**. Su estructura básica es:
+
+```sql
+INSERT INTO nombre_tabla (columna1, columna2, ...)
+VALUES (valor1, valor2, ...);
+```
+
+### **Desglose del Ejemplo**
 ```sql
 INSERT INTO productos (nombre, precio, categoria)
 VALUES ('Laptop', 1200.00, 'Electrónica');
 ```
-**Explicación:** Agregamos un nuevo producto a la tabla `productos`. Especificamos los valores para `nombre`, `precio` y `categoria`.
+
+1. **`INSERT INTO productos`**  
+   - Indica que vamos a insertar datos en la tabla llamada `productos`.
+
+2. **`(nombre, precio, categoria)`**  
+   - Lista las **columnas** donde queremos insertar datos.  
+   - Deben coincidir exactamente con las columnas definidas en la tabla.
+
+3. **`VALUES ('Laptop', 1200.00, 'Electrónica')`**  
+   - Proporciona los **valores** para cada columna en el mismo orden:  
+     - `'Laptop'` → Valor para la columna `nombre` (texto).  
+     - `1200.00` → Valor para la columna `precio` (número decimal).  
+     - `'Electrónica'` → Valor para la columna `categoria` (texto).
+
+
+### **Reglas Importantes**
+1. **Orden de Columnas**  
+   Los valores deben ir en el **mismo orden** que las columnas especificadas.  
+   Ejemplo correcto:  
+   ```sql
+   INSERT INTO productos (nombre, precio) VALUES ('Mouse', 25.50);  -- Correcto
+   ```
+   Ejemplo incorrecto:  
+   ```sql
+   INSERT INTO productos (nombre, precio) VALUES (25.50, 'Mouse');  -- Error!
+   ```
+
+2. **Tipos de Datos**  
+   Los valores deben coincidir con el tipo de dato de la columna:  
+   - Texto → Entre comillas simples (`' '`).  
+   - Números → Sin comillas.  
+   - Fechas → Formato `'YYYY-MM-DD'`.
+
+3. **Columnas Opcionales**  
+   Si omites columnas, debes:  
+   - Usar `DEFAULT` en la definición de la tabla, o  
+   - Permitir `NULL` (si la columna no es `NOT NULL`).
+
+---
+
+### **Insertar Múltiples Registros**
+Puedes insertar varios registros a la vez:
+
+```sql
+INSERT INTO productos (nombre, precio, categoria)
+VALUES 
+  ('Mouse', 25.50, 'Accesorios'),
+  ('Teclado', 45.99, 'Accesorios');
+```
+
+### **Buena Práctica: Parámetros Parametrizados**
+En aplicaciones reales (con Python, Java, etc.), **nunca concatenes valores directamente** para prevenir ataques de inyección SQL. Usa parámetros:
+
+```python
+# Ejemplo en Python (seguro)
+cursor.execute(
+  "INSERT INTO productos (nombre, precio) VALUES (?, ?)",
+  ('Laptop', 1200.00)
+)
+```
+
+### Resumen Visual
+| Componente          | Descripción                              | Ejemplo                     |
+|---------------------|------------------------------------------|-----------------------------|
+| `INSERT INTO`       | Indica la tabla destino                  | `INSERT INTO productos`     |
+| `(columna1, ...)`   | Columnas donde insertar                  | `(nombre, precio)`         |
+| `VALUES (...)`      | Valores a insertar (en orden)            | `('Laptop', 1200.00)`      |
 
 ---
 
 ### 1.4. **Consultar Datos (SELECT)**
+La sentencia `SELECT` es la herramienta principal para recuperar datos de una tabla. Su estructura básica es:
+
 ```sql
--- Ver todos los productos
+SELECT columnas_a_mostrar
+FROM nombre_tabla
+[condiciones];
+```
+
+### **Ejemplo 1: Ver todos los productos**
+```sql
 SELECT * FROM productos;
+```
 
--- Filtrar productos baratos
+- **`SELECT *`**:  
+  El asterisco (`*`) significa "**todas las columnas**" de la tabla.  
+  Equivalente a pedir: *"Muéstrame todo lo que hay en la tabla"*.
+
+- **Resultado**:  
+  Devuelve **todas las filas y columnas** de la tabla `productos`.
+
+---
+
+### **Ejemplo 2: Filtrar productos baratos**
+```sql
 SELECT nombre, precio FROM productos WHERE precio < 500;
+```
 
--- Ordenar por precio descendente
+- **`SELECT nombre, precio`**:  
+  Especifica **qué columnas mostrar** (solo `nombre` y `precio`, no todas).
+
+- **`WHERE precio < 500`**:  
+  Agrega una **condición de filtro**. Solo se muestran filas donde el `precio` sea menor a 500.
+
+- **Resultado**:  
+  Devuelve **solo los productos económicos** con su nombre y precio.
+
+
+### **Ejemplo 3: Ordenar por precio descendente**
+```sql
 SELECT * FROM productos ORDER BY precio DESC;
 ```
-**Explicación:**
-- `SELECT *`: Trae todas las columnas.
-- `WHERE precio < 500`: Solo muestra productos con precio menor a $500.
-- `ORDER BY precio DESC`: Ordena de mayor a menor precio.
+
+- **`ORDER BY precio`**:  
+  Ordena los resultados basándose en la columna `precio`.
+
+- **`DESC`**:  
+  Significa "**descendente**" (de mayor a menor).  
+  Si omites `DESC`, el orden será ascendente (`ASC`).
+
+- **Resultado**:  
+  Devuelve **todos los productos ordenados desde el más caro al más barato**.
+---
+
+###  **Conceptos Clave Adicionales**
+1. **Columnas vs. `*`**:  
+   - Usar `*` es útil para pruebas rápidas, pero en producción **especifica columnas** para mejorar rendimiento.
+
+2. **Múltiples condiciones**:  
+   ```sql
+   SELECT * FROM productos 
+   WHERE precio < 500 AND categoria = 'Electrónica';
+   ```
+
+3. **Combinar filtros y órdenes**:  
+   ```sql
+   SELECT nombre, precio 
+   FROM productos 
+   WHERE precio > 100 
+   ORDER BY precio ASC;
+   ```
+
+---
+
+### Resumen
+| Comando          | Propósito                               | Ejemplo                          |
+|------------------|-----------------------------------------|----------------------------------|
+| `SELECT *`       | Todas las columnas                       | `SELECT * FROM productos`        |
+| `SELECT col1, col2` | Columnas específicas                   | `SELECT nombre, precio FROM...`  |
+| `WHERE condicion` | Filtrar resultados                       | `WHERE precio < 500`             |
+| `ORDER BY col`   | Ordenar resultados                      | `ORDER BY precio DESC`          |
+
+
 
 ### 2. **Agrupación con `GROUP BY`**
 ```sql
