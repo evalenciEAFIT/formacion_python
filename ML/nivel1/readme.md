@@ -39,7 +39,6 @@ sqlite3 mi_base_de_datos.db
 ```
 **Explicación:** Esto genera un archivo llamado `mi_base_de_datos.db` donde se guardarán tus tablas y datos.
 
----
 
 ### 1.2. **Crear Tablas**
 
@@ -107,7 +106,7 @@ CREATE TABLE productos (
 ## Ejemplo completo
 
 ```python
-import sqlite3  # 1️⃣ Importamos el módulo para conectar con SQLite
+import sqlite3  # 1️Importamos el módulo para conectar con SQLite
 
 # ========================================
 # PASO 1: Conectar a la base de datos
@@ -117,7 +116,7 @@ import sqlite3  # 1️⃣ Importamos el módulo para conectar con SQLite
 conexion = sqlite3.connect('tienda.db')  
 cursor = conexion.cursor()  # Objeto para ejecutar comandos SQL
 
-print("✅ Conexión establecida con 'tienda.db'")
+print("Conexión establecida con 'tienda.db'")
 
 # ========================================
 # PASO 2: Crear la tabla con restricciones
@@ -125,15 +124,15 @@ print("✅ Conexión establecida con 'tienda.db'")
 # Usamos execute() para enviar el comando SQL
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS productos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 👉 Clave única autoincremental
-    nombre TEXT NOT NULL,                 -- 👉 Texto obligatorio (no puede ser NULL)
-    precio REAL CHECK(precio > 0),         -- 👉 Número real > 0 (evita precios negativos)
-    stock INTEGER DEFAULT 0,              -- 👉 Entero con valor predeterminado 0
-    fecha_vencimiento DATE                 -- 👉 Fecha en formato AAAA-MM-DD
+    id INTEGER PRIMARY KEY AUTOINCREMENT, 
+    nombre TEXT NOT NULL, 
+    precio REAL CHECK(precio > 0), 
+    stock INTEGER DEFAULT 0, 
+    fecha_vencimiento DATE
 )
 ''')
 
-print("✅ Tabla 'productos' creada con éxito!")
+print("Tabla 'productos' creada con éxito!")
 
 # ========================================
 # PASO 3: Verificar la estructura (opcional)
@@ -142,20 +141,18 @@ print("✅ Tabla 'productos' creada con éxito!")
 cursor.execute("PRAGMA table_info(productos)")
 columnas = cursor.fetchall()
 
-print("\n📋 Estructura de la tabla:")
+print("\nEstructura de la tabla:")
 for col in columnas:
     print(f"- {col[1]} ({col[2]})")  # Muestra nombre y tipo de dato
 
 # ========================================
 # PASO 4: Guardar cambios y cerrar
 # ========================================
-conexion.commit()  # ⚠️ ¡Crucial! Confirma los cambios en la base de datos
+conexion.commit()  # ¡Crucial! Confirma los cambios en la base de datos
 conexion.close()   # Cierra la conexión para liberar recursos
 
-print("\n🔒 Conexión cerrada. ¡Todo listo!")
+print("\nConexión cerrada. ¡Todo listo!")
 ```
-
----
 
 ### Explicación Detallada:
 1. **Importar SQLite**  
@@ -197,23 +194,6 @@ print("\n🔒 Conexión cerrada. ¡Todo listo!")
    conexion.commit()  # Guarda los cambios
    conexion.close()   # Libera memoria
    ```
-
----
-
-### 🚀 Resultado Al Ejecutar:
-```
-✅ Conexión establecida con 'tienda.db'
-✅ Tabla 'productos' creada con éxito!
-
-📋 Estructura de la tabla:
-- id (INTEGER)
-- nombre (TEXT)
-- precio (REAL)
-- stock (INTEGER)
-- fecha_vencimiento (DATE)
-
-🔒 Conexión cerrada. ¡Todo listo!
-```
 
 ---
 
