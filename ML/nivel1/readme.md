@@ -106,7 +106,7 @@ CREATE TABLE productos (
 ## Ejemplo completo
 
 ```python
-import sqlite3  # 1️Importamos el módulo para conectar con SQLite
+import sqlite3  # 1Importamos el módulo para conectar con SQLite
 
 # ========================================
 # PASO 1: Conectar a la base de datos
@@ -485,7 +485,7 @@ GROUP BY categoria;
 
 ---
 
-### ⚠️ **Reglas Importantes**
+### ⚠**Reglas Importantes**
 1. **Columnas en `SELECT`**:  
    - Si usas `GROUP BY`, las columnas en `SELECT` deben estar en `GROUP BY` o ser funciones agregadas (`SUM()`, `AVG()`, etc.).
 
@@ -548,23 +548,123 @@ Categoría: Accesorios, Total: 3
    GROUP BY categoria, precio;  -- Agrupa por categoría Y precio
    ```
 
-
 ### **Errores Comunes**
 - **Error**: `SELECT nombre, COUNT(*) FROM productos GROUP BY categoria;`  
   ❌ **Solución**: Incluir `nombre` en `GROUP BY` o usar una función agregada (`MIN(nombre)`, `MAX(nombre)`).
 
+---
+
+### **3. Unir Tablas (JOIN)**
+La cláusula `JOIN` combina filas de dos o más tablas basándose en una relación entre ellas. Es esencial cuando los datos están distribuidos en tablas relacionadas (ej: productos y proveedores).
 
 ---
 
-### 3. **Unir Tablas (JOIN)**
+### **Sintaxis Básica**
+```sql
+SELECT columnas_combinadas
+FROM tabla1 alias1
+[INNER|LEFT|RIGHT|FULL] JOIN tabla2 alias2
+ON alias1.columna_común = alias2.columna_común;
+```
+
+---
+
+### **Explicación Detallada**
 ```sql
 SELECT p.nombre, pr.proveedor 
 FROM productos p
 INNER JOIN proveedores pr ON p.id = pr.producto_id;
 ```
-**Explicación:** Combina información de dos tablas:
-- `productos` (p) y `proveedores` (pr).
-- Une filas donde `producto_id` coincide.
+
+| Componente          | Descripción                                                                 |
+|---------------------|----------------------------------------------------------------------------|
+| `SELECT p.nombre, pr.proveedor` | Selecciona columnas de ambas tablas (`nombre` de `productos`, `proveedor` de `proveedores`). |
+| `FROM productos p`  | Especifica la tabla principal (`productos`) con un alias corto (`p`).        |
+| `INNER JOIN proveedores pr` | Une la tabla `proveedores` (alias `pr`) con `productos`.                  |
+| `ON p.id = pr.producto_id` | Define la condición de unión: filas donde `id` de `productos` coincide con `producto_id` de `proveedores`. |
+
+
+### **Ejemplo Práctico**
+Supongamos estas tablas:
+
+**Tabla `productos`**:
+| id | nombre       | precio |
+|----|--------------|--------|
+| 1  | Laptop       | 1200   |
+| 2  | Mouse        | 25     |
+
+**Tabla `proveedores`**:
+| producto_id | proveedor   |
+|-------------|-------------|
+| 1           | TechCorp    |
+| 2           | Electronics |
+
+#### **Consulta:**
+```sql
+SELECT p.nombre, pr.proveedor 
+FROM productos p
+INNER JOIN proveedores pr ON p.id = pr.producto_id;
+```
+
+#### **Resultado:**
+| nombre   | proveedor   |
+|----------|-------------|
+| Laptop   | TechCorp    |
+| Mouse    | Electronics |
+
+---
+
+###  **Tipos de JOIN**
+| Tipo          | Descripción                                                                 |
+|---------------|----------------------------------------------------------------------------|
+| `INNER JOIN`  | Solo devuelve filas con coincidencias en AMBAS tablas.                      |
+| `LEFT JOIN`   | Devuelve todas las filas de la tabla izquierda, incluso sin coincidencias.   |
+| `RIGHT JOIN`   | Devuelve todas las filas de la tabla derecha, incluso sin coincidencias.     |
+| `FULL JOIN`    | Devuelve todas las filas de ambas tablas, llenando con `NULL` donde falten. |
+
+---
+
+###  **Ejemplo en Python**
+```python
+import sqlite3
+
+# Conectar a la base de datos
+conexion = sqlite3.connect('tienda.db')
+cursor = conexion.cursor()
+
+# Consulta con INNER JOIN
+cursor.execute('''
+SELECT p.nombre, pr.proveedor 
+FROM productos p
+INNER JOIN proveedores pr ON p.id = pr.producto_id
+''')
+
+# Mostrar resultados
+print("Productos y sus proveedores:")
+for fila in cursor.fetchall():
+    print(f"Producto: {fila[0]}, Proveedor: {fila[1]}")
+
+conexion.close()
+```
+
+#### **Salida Esperada:**
+```
+Productos y sus proveedores:
+Producto: Laptop, Proveedor: TechCorp
+Producto: Mouse, Proveedor: Electronics
+```
+
+
+### **Casos de Uso Comunes**
+1. **Relaciones 1:N**: Un producto tiene un solo proveedor.  
+2. **Relaciones N:M**: Usar tablas intermedias (ej: `pedidos` vinculando `clientes` y `productos`).  
+3. **Datos complementarios**: Combinar información de facturación con detalles de clientes.
+
+---
+
+### **Errores Comunes**
+- **No especificar `ON`**: Genera un `CROSS JOIN` (todas las combinaciones posibles), lo cual es ineficiente.  
+- **Usar columnas incorrectas**: Asegúrate de que las columnas de unión tengan el mismo tipo de dato.
 
 ---
 
