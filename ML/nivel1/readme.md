@@ -717,16 +717,118 @@ Producto: Mouse, Proveedor: Electronics
 ---
 
 ### 4. **Actualizar y Eliminar**
-```sql
--- Cambiar precio de una laptop
-UPDATE productos SET precio = 1150.00 WHERE nombre = 'Laptop';
+Las sentencias `UPDATE` y `DELETE` son fundamentales para modificar o eliminar registros existentes en una tabla.
 
--- Borrar productos baratos
+### **Sintaxis Básica**
+| Sentencia | Descripción                          | Ejemplo                                                                 |
+|-----------|--------------------------------------|-------------------------------------------------------------------------|
+| `UPDATE`  | Modifica datos existentes            | `UPDATE productos SET precio = 1150.00 WHERE nombre = 'Laptop';`      |
+| `DELETE`  | Borra registros que cumplen una condición | `DELETE FROM productos WHERE precio < 100;`                             |
+
+---
+
+### **Explicación Detallada**
+#### **1. Actualizar datos (`UPDATE`)**
+```sql
+UPDATE productos SET precio = 1150.00 WHERE nombre = 'Laptop';
+```
+
+| Componente       | Descripción                                                                 |
+|------------------|-----------------------------------------------------------------------------|
+| `UPDATE productos` | Indica la tabla objetivo (`productos`).                                     |
+| `SET precio = 1150.00` | Define el cambio: actualizar el campo `precio` a `1150.00`.                |
+| `WHERE nombre = 'Laptop'` | Condición: solo afecta al producto llamado `'Laptop'`. |
+
+#### **2. Eliminar datos (`DELETE`)**
+```sql
 DELETE FROM productos WHERE precio < 100;
 ```
-**Explicación:**
-- `UPDATE`: Modifica datos existentes.
-- `DELETE`: Borra registros que cumplan una condición.
+
+| Componente       | Descripción                                                                 |
+|------------------|-----------------------------------------------------------------------------|
+| `DELETE FROM productos` | Indica que se borrarán registros de la tabla `productos`.               |
+| `WHERE precio < 100` | Condición: borra solo productos con precio inferior a `$100`.              |
+
+
+### **Ejemplo Práctico**
+Supongamos esta tabla inicial:
+
+| id | nombre       | precio |
+|----|--------------|--------|
+| 1  | Laptop       | 1200   |
+| 2  | Mouse        | 25     |
+| 3  | Teclado      | 45     |
+
+#### **Después de ejecutar:**
+```sql
+UPDATE productos SET precio = 1150.00 WHERE nombre = 'Laptop';
+```
+
+| id | nombre       | precio |
+|----|--------------|--------|
+| 1  | Laptop       | 1150   | ← **Precio actualizado**
+
+#### **Después de ejecutar:**
+```sql
+DELETE FROM productos WHERE precio < 100;
+```
+
+| id | nombre       | precio |
+|----|--------------|--------|
+| 1  | Laptop       | 1150   | ← **Solo queda este registro**
+
+---
+
+### **Ejemplo en Python**
+```python
+import sqlite3
+
+# Conectar a la base de datos
+conexion = sqlite3.connect('tienda.db')
+cursor = conexion.cursor()
+
+# 1. Actualizar precio de una laptop
+cursor.execute('''
+UPDATE productos SET precio = 1150.00 
+WHERE nombre = 'Laptop'
+''')
+
+# 2. Eliminar productos baratos
+cursor.execute('''
+DELETE FROM productos 
+WHERE precio < 100
+''')
+
+# 3. Verificar cambios
+cursor.execute('SELECT * FROM productos')
+print("Productos restantes:")
+for fila in cursor.fetchall():
+    print(f"id: {fila[0]}, nombre: {fila[1]}, precio: {fila[2]}")
+
+conexion.commit()
+conexion.close()
+```
+
+---
+
+### **Advertencias Clave**
+1. **Siempre usa `WHERE` en `UPDATE`/`DELETE`**:  
+   Si olvidas la condición, afectará **TODOS los registros de la tabla.
+
+2. **Backup de datos**:  
+   Antes de eliminar datos, haz una copia de seguridad:
+   ```sql
+   CREATE TABLE backup_productos AS SELECT * FROM productos;
+   ```
+
+3. **Transacciones (`BEGIN TRANSACTION`)**:  
+   Envuelve operaciones críticas para revertir cambios si algo falla:
+   ```sql
+   BEGIN TRANSACTION;
+   UPDATE productos SET precio = 1150.00 WHERE nombre = 'Laptop';
+   DELETE FROM productos WHERE precio < 100;
+   COMMIT;  -- Confirma cambios
+   ```
 
 ---
 
@@ -772,17 +874,6 @@ productos = cursor.fetchall()
 for producto in productos:
     print(f"Producto: {producto[1]}, Precio: ${producto[2]}")
 ```
-
----
-
-## ✅ Consejos Clave
-1. **Seguridad:** Siempre usa parámetros (`?`) en Python para evitar inyecciones SQL.
-2. **Practica:** Crea tablas pequeñas y prueba consultas gradualmente.
-3. **Documenta:** Comenta tu código para entenderlo luego.
-
-¡Empieza con ejemplos sencillos y ve complejizando! 🚀
-
-
 -----------------
 
 
