@@ -830,8 +830,7 @@ conexion.close()
 ---
 # RESUMEN CRUD
 
-### **Resumen del CRUD**
-| Operación | Descripción                          | SQL Command                          | Python (sqlite3) Example                          |
+| Operación | Descripción                          | SQL Command                          | Ejemplo en Python (sqlite3)                          |
 |-----------|--------------------------------------|--------------------------------------|--------------------------------------------------|
 | **C** (Create) | Insertar nuevos datos               | `INSERT INTO tabla (campos) VALUES (?)` | `cursor.execute("INSERT INTO...", params)`        |
 | **R** (Read)   | Consultar datos existentes          | `SELECT * FROM tabla WHERE ...`       | `cursor.execute("SELECT...", params).fetchall()`   |
