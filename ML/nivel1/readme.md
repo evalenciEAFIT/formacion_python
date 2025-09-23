@@ -628,18 +628,66 @@ INNER JOIN proveedores pr ON p.id = pr.producto_id;
 ```python
 import sqlite3
 
-# Conectar a la base de datos
+# ========================================
+# 1. Conectar a la base de datos
+# ========================================
 conexion = sqlite3.connect('tienda.db')
 cursor = conexion.cursor()
 
-# Consulta con INNER JOIN
+# ========================================
+# 2. Crear tablas (si no existen)
+# ========================================
+# Tabla de productos
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS productos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    precio REAL CHECK(precio > 0)
+)
+''')
+
+# Tabla de proveedores
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS proveedores (
+    producto_id INTEGER,
+    proveedor TEXT,
+    FOREIGN KEY (producto_id) REFERENCES productos(id)
+)
+''')
+
+# ========================================
+# 3. Insertar datos de ejemplo
+# ========================================
+# Insertar productos
+productos = [
+    ('Laptop', 1200.00),
+    ('Mouse', 25.50),
+    ('Teclado', 45.99)
+]
+cursor.executemany('INSERT INTO productos (nombre, precio) VALUES (?, ?)', productos)
+
+# Insertar proveedores
+proveedores = [
+    (1, 'TechCorp'),   # ID 1 corresponde a Laptop
+    (2, 'Electronics'), # ID 2 corresponde a Mouse
+    (3, 'AccesoriosInc') # ID 3 corresponde a Teclado
+]
+cursor.executemany('INSERT INTO proveedores (producto_id, proveedor) VALUES (?, ?)', proveedores)
+
+conexion.commit()  # Guardar cambios
+
+# ========================================
+# 4. Consulta con INNER JOIN
+# ========================================
 cursor.execute('''
 SELECT p.nombre, pr.proveedor 
 FROM productos p
 INNER JOIN proveedores pr ON p.id = pr.producto_id
 ''')
 
-# Mostrar resultados
+# ========================================
+# 5. Mostrar resultados
+# ========================================
 print("Productos y sus proveedores:")
 for fila in cursor.fetchall():
     print(f"Producto: {fila[0]}, Proveedor: {fila[1]}")
