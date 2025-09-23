@@ -9,13 +9,10 @@ Este nivel cubre técnicas para trabajar con datos utilizando **SQL (SQLite)**, 
    - Conexión a bases de datos, creación de tablas, inserción/consulta de datos.  
    - Consultas complejas (JOIN, GROUP BY, subconsultas).
   
-2. **Pandas**:  
+2. **ETL con Pandas y SQL**:  
    - Estructuras de datos (Series, DataFrames).  
    - Limpieza, transformación y análisis estadístico.  
 
-3. **Archivos Planos**:  
-   - Trabajo con CSV, TXT y JSON.  
-   - Formateo y validación de datos.  
 
 
 ## Requisitos
@@ -942,31 +939,3 @@ conexion.close()
 
 
 ---
-
-
-
-### Leer Excel con Pandas (ejercicio/excel/leer_excel.py):
-```python
-import pandas as pd
-
-# Leer archivo Excel
-df = pd.read_excel('empleados.xlsx', sheet_name='Hoja1')
-
-# Mostrar primeras filas
-print(df.head())
-```
-
----
-
-¡Empieza practicando con los ejercicios y consulta la teoría cuando necesites refuerzo!
-```
-
----
-
-### Pasos para Implementar:
-1. **Crea la estructura de carpetas** en tu repositorio local.  
-2. **Agrega los archivos de ejercicios y teoría** con ejemplos funcionales.  
-3. **Incluye datasets de muestra** en `recursos/datasets/` (ej: `ventas.csv`).  
-4. **Sube todo a GitHub** manteniendo la ruta `formacion_python/ML/nivel1`.  
-
-Esta estructura permite un aprendizaje progresivo, combinando teoría con ejercicios prácticos. ¡Listo para empezar! 🚀
