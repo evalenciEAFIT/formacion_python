@@ -485,7 +485,7 @@ GROUP BY categoria;
 
 ---
 
-### ⚠**Reglas Importantes**
+### **Reglas Importantes**
 1. **Columnas en `SELECT`**:  
    - Si usas `GROUP BY`, las columnas en `SELECT` deben estar en `GROUP BY` o ser funciones agregadas (`SUM()`, `AVG()`, etc.).
 
