@@ -989,43 +989,116 @@ print("Base de datos 'ventas.db' creada con datos de ejemplo.")
 ## **Parte 2: ETL Completo (SQLite → Pandas → Excel)**
 Realizamos el ETL para transformar los datos y generar un informe en Excel:
 
-```python
+```python#  pip uninstall pandas
+# pip install pandas openpyxl
+
 import sqlite3
-import pandas as pd
+import pandas as pd  # <-- Asegúrate de importar pandas
 from datetime import datetime
 
 # ========================================
-# 1. EXTRAER DATOS DE SQLITE
+# 1. CREAR BASE DE DATOS Y TABLAS
 # ========================================
-conexion = sqlite3.connect('ventas.db')
-df = pd.read_sql_query("SELECT * FROM ventas", conexion)
+conexion = sqlite3.connect('ventas_etl.db')
+cursor = conexion.cursor()
+
+# Crear tabla de ventas
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS ventas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cliente TEXT NOT NULL,
+    producto TEXT,
+    cantidad INTEGER CHECK(cantidad > 0),
+    fecha_venta DATE,
+    total_venta REAL
+)
+''')
+
+# Crear tabla de proveedores
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS proveedores (
+    producto_id INTEGER,
+    proveedor TEXT,
+    FOREIGN KEY (producto_id) REFERENCES ventas(id)
+)
+''')
+
+# Insertar datos de ejemplo
+ventas_data = [
+    ('Cliente_A', 'Laptop', 2, '2023-10-01', 2400.00),
+    ('Cliente_B', 'Mouse', 5, '2023-10-02', 127.50),
+    ('Cliente_C', 'Teclado', 1, '2023-10-03', 45.99),
+    ('Cliente_D', 'Monitor', 3, '2023-10-04', 900.00),
+    ('Cliente_E', 'Audífonos', 10, '2023-10-05', 800.00)
+]
+cursor.executemany('INSERT INTO ventas (cliente, producto, cantidad, fecha_venta, total_venta) VALUES (?, ?, ?, ?, ?)', ventas_data)
+
+# Insertar proveedores
+proveedores_data = [
+    (1, 'TechCorp'),    # ID 1 = Laptop
+    (2, 'Electronics'), # ID 2 = Mouse
+    (3, 'AccesoriosInc'), # ID 3 = Teclado
+    (4, 'DisplaysLtd'),  # ID 4 = Monitor
+    (5, 'AudioMax')     # ID 5 = Audífonos
+]
+cursor.executemany('INSERT INTO proveedores (producto_id, proveedor) VALUES (?, ?)', proveedores_data)
+
+conexion.commit()
+conexion.close()
+
+print("Base de datos 'ventas_etl.db' creada con datos de ejemplo.")
+
+# ========================================
+# 2. ETL COMPLETO (SQLite → Manual → Pandas → CSV/Excel)
+# ========================================
+# ========================================
+# 2.1. EXTRACCIÓN MANUAL DESDE SQLITE
+# ========================================
+conexion = sqlite3.connect('ventas_etl.db')
+cursor = conexion.cursor()
+
+# Leer datos de ventas
+cursor.execute("SELECT * FROM ventas")
+ventas_filas = cursor.fetchall()
+
+# Leer datos de proveedores
+cursor.execute("SELECT * FROM proveedores")
+proveedores_filas = cursor.fetchall()
+
 conexion.close()
 
 # ========================================
-# 2. TRANSFORMACIÓN DE DATOS
+# 2.2. TRANSFORMACIÓN DE DATOS (MANUAL + PANDAS)
 # ========================================
-# Convertir fecha a formato datetime
-df['fecha_venta'] = pd.to_datetime(df['fecha_venta'])
+# Convertir datos a diccionarios para facilidad
+columnas_ventas = ['id', 'cliente', 'producto', 'cantidad', 'fecha_venta', 'total_venta']
+ventas_dict = [dict(zip(columnas_ventas, fila)) for fila in ventas_filas]
 
-# Agregar columna de margen de ganancia (ej: 25%)
-df['margen_ganancia'] = df['total_venta'] * 0.25
+# Convertir a DataFrame de Pandas
+df_ventas = pd.DataFrame(ventas_dict)
+df_ventas['fecha_venta'] = pd.to_datetime(df_ventas['fecha_venta'])  # Formatear fechas
+
+# Agregar margen de ganancia (25%)
+df_ventas['margen_ganancia'] = df_ventas['total_venta'] * 0.25
 
 # Filtrar ventas de octubre 2023
-df_octubre = df[df['fecha_venta'].dt.month == 10].copy()
+df_octubre = df_ventas[df_ventas['fecha_venta'].dt.month == 10].copy()
 
 # ========================================
-# 3. CARGA DE DATOS EN EXCEL
+# 2.3. CARGA DE DATOS (CSV + EXCEL)
 # ========================================
+# Generar archivo CSV
+df_ventas.to_csv('ventas_transformadas.csv', index=False)
+print("Archivo CSV generado: ventas_transformadas.csv")
+
+# Generar archivo Excel
 with pd.ExcelWriter('reporte_ventas_etl.xlsx', engine='openpyxl') as writer:
-    # Hoja 1: Todas las ventas
-    df.to_excel(writer, sheet_name='Todas_Ventas', index=False)
-    
-    # Hoja 2: Ventas de octubre 2023
+    df_ventas.to_excel(writer, sheet_name='Todas_Ventas', index=False)
     df_octubre.to_excel(writer, sheet_name='Ventas_Octubre_2023', index=False)
 
-print("ETL completado! Archivo generado: reporte_ventas_etl.xlsx")
-print(f"- {len(df)} registros en 'Todas_Ventas'")
-print(f"- {len(df_octubre)} registros en 'Ventas_Octubre_2023'")
+print("ETL completado! Archivos generados:")
+print("- ventas_transformadas.csv")
+print("- reporte_ventas_etl.xlsx")
 ```
 
 ---
