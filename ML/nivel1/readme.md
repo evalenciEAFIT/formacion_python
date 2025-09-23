@@ -7,19 +7,16 @@ Este nivel cubre técnicas para trabajar con datos utilizando **SQL (SQLite)**, 
 ## Temas Incluidos
 1. **SQL con SQLite**:  
    - Conexión a bases de datos, creación de tablas, inserción/consulta de datos.  
-   - Consultas complejas (JOIN, GROUP BY, subconsultas).  
-
-2. **Manejo de Excel**:  
-   - Lectura/escritura de archivos `.xlsx`.  
-   - Manipulación de hojas y celdas.  
+   - Consultas complejas (JOIN, GROUP BY, subconsultas).
+  
+2. **Pandas**:  
+   - Estructuras de datos (Series, DataFrames).  
+   - Limpieza, transformación y análisis estadístico.  
 
 3. **Archivos Planos**:  
    - Trabajo con CSV, TXT y JSON.  
    - Formateo y validación de datos.  
 
-4. **Pandas**:  
-   - Estructuras de datos (Series, DataFrames).  
-   - Limpieza, transformación y análisis estadístico.  
 
 ## Requisitos
 - Haber completado el [Nivel 0](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel0).  
@@ -32,7 +29,7 @@ Este nivel cubre técnicas para trabajar con datos utilizando **SQL (SQLite)**, 
 
 ## Comandos Básicos (Explicados Simply)
 
-### 1.1. **Crear una Base de Datos**
+###  **Crear una Base de Datos**
 ```sql
 -- Crea un archivo de base de datos (.db)
 sqlite3 mi_base_de_datos.db
@@ -40,7 +37,7 @@ sqlite3 mi_base_de_datos.db
 **Explicación:** Esto genera un archivo llamado `mi_base_de_datos.db` donde se guardarán tus tablas y datos.
 
 
-### 1.2. **Crear Tablas**
+### **Crear Tablas**
 
 ### **Crear Tablas en SQLite: Sintaxis Básica**
 La instrucción `CREATE TABLE` define la estructura de una tabla. Su formato general es:
@@ -831,52 +828,121 @@ conexion.close()
    ```
 
 ---
+# RESUMEN CRUD
 
-## 💻 Código Python Simplificado
+### **Resumen del CRUD**
+| Operación | Descripción                          | SQL Command                          | Python (sqlite3) Example                          |
+|-----------|--------------------------------------|--------------------------------------|--------------------------------------------------|
+| **C** (Create) | Insertar nuevos datos               | `INSERT INTO tabla (campos) VALUES (?)` | `cursor.execute("INSERT INTO...", params)`        |
+| **R** (Read)   | Consultar datos existentes          | `SELECT * FROM tabla WHERE ...`       | `cursor.execute("SELECT...", params).fetchall()`   |
+| **U** (Update)| Modificar datos existentes          | `UPDATE tabla SET campo=? WHERE ...`  | `cursor.execute("UPDATE...", params)`             |
+| **D** (Delete)| Eliminar datos                      | `DELETE FROM tabla WHERE ...`         | `cursor.execute("DELETE...", params)`             |
 
-### Conectar a la Base de Datos
+---
+
+### **Ejemplos Prácticos**
+#### 1. **Crear (Insertar Datos)**
+```sql
+-- SQL
+INSERT INTO productos (nombre, precio) VALUES ('Laptop', 1200.00);
+
+-- Python
+cursor.execute("INSERT INTO productos (nombre, precio) VALUES (?, ?)", ('Laptop', 1200.00))
+conexion.commit()  # ¡Importante!
+```
+
+#### 2. **Leer (Consultar Datos)**
+```sql
+-- SQL
+SELECT * FROM productos WHERE precio > 500;
+
+-- Python
+cursor.execute("SELECT * FROM productos WHERE precio > ?", (500,))
+results = cursor.fetchall()
+for row in results:
+    print(row)
+```
+
+#### 3. **Actualizar (Modificar Datos)**
+```sql
+-- SQL
+UPDATE productos SET precio = 1150.00 WHERE nombre = 'Laptop';
+
+-- Python
+cursor.execute("UPDATE productos SET precio=? WHERE nombre=?", (1150.00, 'Laptop'))
+conexion.commit()
+```
+
+#### 4. **Eliminar (Borrar Datos)**
+```sql
+-- SQL
+DELETE FROM productos WHERE precio < 100;
+
+-- Python
+cursor.execute("DELETE FROM productos WHERE precio < ?", (100,))
+conexion.commit()
+```
+
+---
+
+### **Notas Críticas**
+1. **Commit Transacciones**:  
+   Siempre usa `conexion.commit()` después de `INSERT`, `UPDATE` o `DELETE`.
+
+2. **Parámetros Parametrizados**:  
+   Usa `?` en lugar de concatenar strings para **prevenir inyección SQL**:
+   ```python
+   # MAL (vulnerable a inyección):
+   cursor.execute(f"SELECT * FROM productos WHERE nombre='{user_input}'")
+   
+   # BIEN (seguro):
+   cursor.execute("SELECT * FROM productos WHERE nombre=?", (user_input,))
+   ```
+
+3. **Manejo de Errores**:  
+   Envuelve operaciones críticas en bloques `try-except`:
+   ```python
+   try:
+       cursor.execute(...)
+       conexion.commit()
+   except sqlite3.Error as e:
+       print(f"Error: {e}")
+       conexion.rollback()  # Revertir cambios si falla
+   ```
+
+---
+
+### **Estructura de Código Completo**
 ```python
 import sqlite3
 
-# Crea/conecta a la base de datos
-conexion = sqlite3.connect('mi_base_de_datos.db')  
-print("Base de datos conectada")
-```
-
-### Crear una Tabla
-```python
+# Conectar a la DB
+conexion = sqlite3.connect('tienda.db')
 cursor = conexion.cursor()
 
-# Crea tabla si no existe
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS productos (
-    id INTEGER PRIMARY KEY,
-    nombre TEXT,
-    precio REAL
-)
-''')
+# --- OPERACIONES CRUD ---
+# CREATE
+cursor.execute("INSERT INTO productos (nombre, precio) VALUES (?, ?)", ('Tablet', 800.00))
+conexion.commit()
+
+# READ
+cursor.execute("SELECT * FROM productos")
+print("Productos:", cursor.fetchall())
+
+# UPDATE
+cursor.execute("UPDATE productos SET precio=? WHERE nombre=?", (750.00, 'Tablet'))
+conexion.commit()
+
+# DELETE
+cursor.execute("DELETE FROM productos WHERE precio < 200")
+conexion.commit()
+
+# Cerrar conexión
+conexion.close()
 ```
 
-### Insertar Datos Seguros
-```python
-# Usamos parámetros para evitar errores
-datos = ('Mouse', 25.50)
-cursor.execute('INSERT INTO productos (nombre, precio) VALUES (?, ?)', datos)
-```
 
-### Consultar Datos
-```python
-# Obtener todos los productos
-cursor.execute('SELECT * FROM productos')
-productos = cursor.fetchall()  
-
-# Mostrar resultados
-for producto in productos:
-    print(f"Producto: {producto[1]}, Precio: ${producto[2]}")
-```
------------------
-
-
+---
 
 
 
