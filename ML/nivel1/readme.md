@@ -937,5 +937,112 @@ conexion.commit()
 conexion.close()
 ```
 
+---
+# **ETL: Extracción, Transformación y Carga de Datos**  
+Un **ETL (Extract, Transform, Load)** es el proceso para mover datos de una fuente a un destino, aplicando transformaciones necesarias. Es **fundamental para ciencia de datos y ML** porque:
+- **Garantiza calidad de datos**: Limpia inconsistencias, valores nulos y errores.
+- **Prepara datos para modelos**: Convierte datos crudos en un formato usable para entrenamiento.
+- **Centraliza información**: Combina datos de múltiples fuentes en una única base.
+
+## **Parte 1: Crear Datos y Tablas (Fuente de Datos)**
+Primero, generamos datos de ejemplo y creamos tablas en SQLite:
+
+```python
+import sqlite3
+import pandas as pd
+from datetime import datetime
+
+# ========================================
+# 1. CREAR BASE DE DATOS Y TABLAS
+# ========================================
+conexion = sqlite3.connect('ventas.db')
+cursor = conexion.cursor()
+
+# Crear tabla de ventas
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS ventas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    cliente TEXT NOT NULL,
+    producto TEXT,
+    cantidad INTEGER CHECK(cantidad > 0),
+    fecha_venta DATE,
+    total_venta REAL
+)
+''')
+
+# Insertar datos de ejemplo
+ventas_data = [
+    ('Cliente_A', 'Laptop', 2, '2023-10-01', 2400.00),
+    ('Cliente_B', 'Mouse', 5, '2023-10-02', 127.50),
+    ('Cliente_C', 'Teclado', 1, '2023-10-03', 45.99),
+    ('Cliente_D', 'Monitor', 3, '2023-10-04', 900.00),
+    ('Cliente_E', 'Audífonos', 10, '2023-10-05', 800.00)
+]
+cursor.executemany('INSERT INTO ventas (cliente, producto, cantidad, fecha_venta, total_venta) VALUES (?, ?, ?, ?, ?)', ventas_data)
+
+conexion.commit()
+conexion.close()
+
+print("Base de datos 'ventas.db' creada con datos de ejemplo.")
+```
+
+## **Parte 2: ETL Completo (SQLite → Pandas → Excel)**
+Realizamos el ETL para transformar los datos y generar un informe en Excel:
+
+```python
+import sqlite3
+import pandas as pd
+from datetime import datetime
+
+# ========================================
+# 1. EXTRAER DATOS DE SQLITE
+# ========================================
+conexion = sqlite3.connect('ventas.db')
+df = pd.read_sql_query("SELECT * FROM ventas", conexion)
+conexion.close()
+
+# ========================================
+# 2. TRANSFORMACIÓN DE DATOS
+# ========================================
+# Convertir fecha a formato datetime
+df['fecha_venta'] = pd.to_datetime(df['fecha_venta'])
+
+# Agregar columna de margen de ganancia (ej: 25%)
+df['margen_ganancia'] = df['total_venta'] * 0.25
+
+# Filtrar ventas de octubre 2023
+df_octubre = df[df['fecha_venta'].dt.month == 10].copy()
+
+# ========================================
+# 3. CARGA DE DATOS EN EXCEL
+# ========================================
+with pd.ExcelWriter('reporte_ventas_etl.xlsx', engine='openpyxl') as writer:
+    # Hoja 1: Todas las ventas
+    df.to_excel(writer, sheet_name='Todas_Ventas', index=False)
+    
+    # Hoja 2: Ventas de octubre 2023
+    df_octubre.to_excel(writer, sheet_name='Ventas_Octubre_2023', index=False)
+
+print("ETL completado! Archivo generado: reporte_ventas_etl.xlsx")
+print(f"- {len(df)} registros en 'Todas_Ventas'")
+print(f"- {len(df_octubre)} registros en 'Ventas_Octubre_2023'")
+```
 
 ---
+
+## **Resultado del ETL**
+Generará un archivo `reporte_ventas_etl.xlsx` con dos hojas:
+1. **Todas_Ventas**: Todos los registros originales.
+2. **Ventas_Octubre_2023**: Solo ventas del mes de octubre, con margen de ganancia calculado.
+
+
+## **Importancia del ETL para ML**
+- **Calidad de datos**: Elimina errores que podrían sesgar modelos.
+- **Consistencia**: Asegura que todos los datos sigan el mismo formato.
+- **Eficiencia**: Permite entrenar modelos con datos estructurados y relevantes.
+
+
+## **Mejoras Potenciales**
+- **Incorporar datos externos**: Unir con APIs o archivos CSV.
+- **Automatización**: Programar el ETL para ejecutarse diariamente.
+- **Monitoreo**: Agregar logs para rastrear errores.
