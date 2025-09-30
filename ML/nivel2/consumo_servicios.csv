@@ -1,0 +1,6 @@
+Medidor_ID,Servicio,Consumo,Costo_Unitario,Fecha
+M001,Electricidad,150,0.12,2025-09-01
+M002,Agua,10,1.5,2025-09-01
+M003,Gas,25,0.8,2025-09-01
+M004,Electricidad,200,0.12,2025-09-02
+M005,Agua,12,1.5,2025-09-02
