@@ -112,9 +112,6 @@ Esto simula un almacenamiento persistente para históricos de monitoreo.
 # Crear una conexión a la base de datos SQLite (crea el archivo si no existe)
 conn = sqlite3.connect('monitoreo.db')  # Establece la conexión
 
-# Guardar el DataFrame en una tabla SQL para simular carga inicial
-df.to_sql('consumo', conn, if_exists='replace', index=False)  # Reemplaza si existe, sin índice
-
 # Cargar datos desde la base de datos usando una consulta SQL
 query = "SELECT * FROM consumo"  # Consulta para seleccionar todos los registros
 df_sql = pd.read_sql_query(query, conn)  # Ejecuta la consulta y crea un DataFrame
