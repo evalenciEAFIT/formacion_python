@@ -129,6 +129,12 @@ import sqlite3  # Para conectar y trabajar con bases de datos SQLite
 import matplotlib.pyplot as plt  # Para generar visualizaciones gráficas
 
 #Variables
+global variable 
+global archivoCSV
+global BaseDatos 
+global conn 
+global Query 
+
 variable = None
 archivoCSV = None
 BaseDatos = "data/monitoreo.db"
@@ -136,6 +142,7 @@ conn = None
 Query = "SELECT * FROM consumo"
 
 def CrearVariable():
+    global variable
     # Crear un diccionario con datos simulados de monitoreo
     variable = {
         'Medidor_ID': ['M001', 'M002', 'M003', 'M004', 'M005'],  # Identificadores únicos de medidores
@@ -146,12 +153,15 @@ def CrearVariable():
     }
 
 def CrearArchivoCSV():
+    global archivoCSV
     archivoCSV = "data/consumo_servicios.csv"
 
 def ConexionBD():
+    global conn
     conn = sqlite3.connect(BaseDatos)
 
 def DesconectarBD():
+    global conn
     # Cerrar la conexión para liberar recursos
     conn.close()
 
@@ -172,6 +182,9 @@ if __name__ == '__main__':
     verResultado("Varible",df_variable)
     verResultado("CSV",df_CSV)
     verResultado("SQL",df_SQL)
+
+    DesconectarBD()
+
 ```
 
 ## Paso 4: Manipulación de Datos Básica
