@@ -121,6 +121,59 @@ print(df_sql.head())  # Muestra las primeras filas
 conn.close()
 ```
 
+#Codigo Resumen
+
+```python
+import pandas as pd  # Biblioteca principal para manipulación de datos en DataFrames
+import sqlite3  # Para conectar y trabajar con bases de datos SQLite
+import matplotlib.pyplot as plt  # Para generar visualizaciones gráficas
+
+#Variables
+variable = None
+archivoCSV = None
+BaseDatos = "data/monitoreo.db"
+conn = None
+Query = "SELECT * FROM consumo"
+
+def CrearVariable():
+    # Crear un diccionario con datos simulados de monitoreo
+    variable = {
+        'Medidor_ID': ['M001', 'M002', 'M003', 'M004', 'M005'],  # Identificadores únicos de medidores
+        'Servicio': ['Electricidad', 'Agua', 'Gas', 'Electricidad', 'Agua'],  # Tipo de servicio monitoreado
+        'Consumo': [150, 10, 25, 200, 12],  # Unidades consumidas (kWh, m³, etc.)
+        'Costo_Unitario': [0.12, 1.5, 0.8, 0.12, 1.5],  # Costo por unidad ($/unidad)
+        'Fecha': ['2025-09-01', '2025-09-01', '2025-09-01', '2025-09-02', '2025-09-02']  # Fecha de la lectura
+    }
+
+def CrearArchivoCSV():
+    archivoCSV = "data/consumo_servicios.csv"
+
+def ConexionBD():
+    conn = sqlite3.connect(BaseDatos)
+
+def DesconectarBD():
+    # Cerrar la conexión para liberar recursos
+    conn.close()
+
+def verResultado(titulo, df):
+    print(f"--- [{titulo}] --------")
+    print(df)
+    print("\n")
+
+if __name__ == '__main__':
+    CrearVariable()
+    CrearArchivoCSV()
+    ConexionBD()
+
+    df_variable = pd.DataFrame(variable)
+    df_CSV = pd.read_csv(archivoCSV)
+    df_SQL = pd.read_sql_query(Query, conn)
+
+    verResultado("Varible",df_variable)
+    verResultado("CSV",df_CSV)
+    verResultado("SQL",df_SQL)
+```
+
 ## Paso 4: Manipulación de Datos Básica
 
 Una vez cargados, inspecciona, selecciona y filtra los datos para analizar el consumo.  
