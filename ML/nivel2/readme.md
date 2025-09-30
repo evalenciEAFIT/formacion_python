@@ -35,6 +35,8 @@ El enfoque temático se centra en el monitoreo de servicios esenciales, donde lo
 Comienza importando las bibliotecas necesarias para manipular datos y crear visualizaciones.  
 Pandas se usa para el manejo de datos tabulares, sqlite3 para bases de datos locales, y Matplotlib para gráficos.
 
+Intenta creando buenas practivas :)
+
 ```python
 import pandas as pd  # Biblioteca principal para manipulación de datos en DataFrames
 import sqlite3  # Para conectar y trabajar con bases de datos SQLite
