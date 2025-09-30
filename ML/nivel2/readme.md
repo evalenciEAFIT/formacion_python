@@ -282,10 +282,12 @@ df.to_csv('consumo_respaldo.csv', index=False)  # Formato simple y portátil
 ```
 
 ### A Excel
+Se requiere la libreria openpyxl
 ```python
 # Guardar en Excel, especificando nombre de hoja
 df.to_excel('consumo_respaldo.xlsx', index=False, sheet_name='Monitoreo')  # Formato con soporte para hojas múltiples
 ```
+
 
 ### A SQLite
 ```python
