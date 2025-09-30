@@ -1,4 +1,5 @@
-# Guía Paso a Paso para Usar Pandas en el Monitoreo de Electricidad, Agua y Gas
+# Guía Paso a Paso para Usar Pandas 
+Caso práctico en el Monitoreo de Electricidad, Agua y Gas
 
 ## Introducción
 
@@ -276,5 +277,3 @@ plt.show()  # Muestra el gráfico
 - **Automatización**: Integra con bibliotecas como `schedule` para ejecutar monitoreos periódicos, logrando alertas en tiempo real.  
 - **Avanzado**: Explora `seaborn` para visualizaciones más complejas o `merge()` para unir datasets de múltiples medidores.  
 - **Documentación**: Consulta [pandas.pydata.org](https://pandas.pydata.org) para más detalles.
-
-Si necesitas ejecutar código, agregar más ejemplos o ajustar la guía, ¡házmelo saber!
