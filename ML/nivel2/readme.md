@@ -1,5 +1,6 @@
 # Guía Paso a Paso para Usar Pandas 
 Caso práctico en el Monitoreo de Electricidad, Agua y Gas
+Material de apoyo: [https://www.w3schools.com/python/pandas/default.asp] (https://www.w3schools.com/python/pandas/default.asp)
 
 [Nivel 0: Buenas prácticas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel0) | 
 [Nivel 1: Uso de datos en SQL](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel1) |
