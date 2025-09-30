@@ -2,8 +2,8 @@
 Nivel 0 - nivelación
 
 [Nivel 0: Buenas prácticas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel0) | 
-[Nivel 1: Manejo de datos](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel1) | 
-[Repositorio](https://github.com/evalenciEAFIT/formacion_python)
+[Nivel 1: Manejeo de datos SQL](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel1) |
+[Nivel 2: Uso Pandas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel2)
 
 ## Tabla de Contenidos
 
