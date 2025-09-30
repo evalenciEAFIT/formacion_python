@@ -3,11 +3,9 @@ Caso práctico en el Monitoreo de Electricidad, Agua y Gas
 
 ## Introducción
 
-Bienvenido a esta guía práctica sobre el uso de Pandas en Python para el monitoreo de servicios públicos como electricidad, agua y gas. Pandas es una biblioteca de código abierto que facilita la manipulación y análisis de datos estructurados, ideal para procesar lecturas de medidores, calcular consumos y generar reportes en entornos de monitoreo. Esta guía está diseñada para principiantes y profesionales que deseen automatizar el análisis de datos de consumo, detectando patrones, calculando costos y visualizando tendencias.
+Pandas es una biblioteca de código abierto que facilita la manipulación y análisis de datos estructurados.
 
-El enfoque temático se centra en el monitoreo de servicios esenciales, donde los datos provienen de sensores o registros históricos. Conceptualemente, Pandas actúa como una "hoja de cálculo programable" que permite cargar datos de diversas fuentes (CSV, Excel, SQLite), realizar operaciones matemáticas para derivar métricas clave (como costos totales o alertas de consumo alto), y respaldar resultados para auditorías. El objetivo principal es lograr un flujo de trabajo eficiente que transforme datos crudos en insights accionables, como identificar fugas o ineficiencias energéticas, promoviendo la sostenibilidad y el ahorro de recursos.
-
-Al final de esta guía, podrás crear scripts que automaticen el análisis de datos de monitoreo, generando visualizaciones claras y respaldos seguros, lo que facilita la toma de decisiones en tiempo real o retrospectivo.
+El enfoque temático se centra en el monitoreo de servicios esenciales, donde los datos provienen de sensores o registros históricos. Conceptualemente, Pandas actúa como una "hoja de cálculo programable" que permite cargar datos de diversas fuentes (CSV, Excel, SQLite), realizar operaciones matemáticas para derivar métricas clave (como costos totales o alertas de consumo alto), y respaldar resultados para auditorías.
 
 ## Temario (Tabla de Contenidos)
 
