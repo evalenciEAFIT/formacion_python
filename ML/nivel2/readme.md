@@ -121,7 +121,8 @@ print(df_sql.head())  # Muestra las primeras filas
 conn.close()
 ```
 
-#Codigo Resumen
+## Codigo Resumen
+Se considera la estructura: Data, App, ...
 
 ```python
 import pandas as pd  # Biblioteca principal para manipulación de datos en DataFrames
