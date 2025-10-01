@@ -189,6 +189,84 @@ if __name__ == '__main__':
 
 ```
 
+## Codigo Resumen 2
+```python
+import pandas as pd  # Biblioteca principal para manipulación de datos en DataFrames
+import sqlite3  # Para conectar y trabajar con bases de datos SQLite
+import matplotlib.pyplot as plt  # Para generar visualizaciones gráficas
+
+
+global variable
+global ruta_csv
+global rutaBD
+global rutaExcel
+global conn
+
+def Inicializar():
+    global variable
+    global ruta_csv
+    global rutaBD
+    global ruta_excel
+    global conn
+
+    ruta_csv = "Data/consumo_servicios.csv"
+    rutaBD = "Data/monitoreo.db"
+    ruta_excel = "Data/Libro1.xlsx"
+
+    # Crear un diccionario con datos simulados de monitoreo
+    variable = {
+        'Medidor_ID': ['M001', 'M002', 'M003', 'M004', 'M005'],  # Identificadores únicos de medidores
+        'Servicio': ['Electricidad', 'Agua', 'Gas', 'Electricidad', 'Agua'],  # Tipo de servicio monitoreado
+        'Consumo': [150, 10, 25, 200, 12],  # Unidades consumidas (kWh, m³, etc.)
+        'Costo_Unitario': [0.12, 1.5, 0.8, 0.12, 1.5],  # Costo por unidad ($/unidad)
+        'Fecha': ['2025-09-01', '2025-09-01', '2025-09-01', '2025-09-02', '2025-09-02']  # Fecha de la lectura
+    }
+
+def cargarVarible():
+    global variable
+    df = pd.DataFrame(variable)
+    return df
+
+def cargarCSV():
+    global ruta_csv
+    df = pd.read_csv(ruta_csv)
+    return df
+
+def cargarExcel(pestaña):
+    global ruta_excel
+    df = pd.read_excel(ruta_excel, sheet_name=pestaña)
+    return df
+
+def cargarSQL(comando):
+    global conn
+    global rutaBD
+    conn = sqlite3.connect(rutaBD)
+    df = pd.read_sql_query(comando, conn)
+    return df
+
+def desconectarBD():
+    global conn
+    conn.close()
+
+def verDF(titulo, df):
+    print(f"--- [{titulo}] ------------")
+    print(df)
+    print("\n")
+
+#Funcion principal o programa
+if __name__ == '__main__':
+    Inicializar()
+    d_variable = cargarVarible()
+    verDF("VARIABLE", d_variable)
+
+    d_csv = cargarCSV()
+    verDF("CSV", d_csv)
+
+    d_SQL = cargarSQL("SELECT * FROM consumo")
+    verDF("SQL", d_SQL)
+    desconectarBD()
+```
+
 ## Paso 4: Manipulación de Datos Básica
 
 Una vez cargados, inspecciona, selecciona y filtra los datos para analizar el consumo.  
