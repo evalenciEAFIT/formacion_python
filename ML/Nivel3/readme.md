@@ -146,7 +146,7 @@ def load_and_process_data(file_path: str = 'data/consumo_epm.csv') -> pd.DataFra
 # Este archivo permite importar desde app/ como un módulo Python.
 # Mejora: Facilita expansiones futuras, como agregar más módulos (e.g., pages.py para multi-páginas).
 ```
-**Justificación**: Necesario para paquetes Python. **Mejora**: Comentario agregado para claridad.
+**Justificación**: Necesario para paquetes Python.
 
 ### 4. `app/layout.py`
 ```python
@@ -245,7 +245,6 @@ def create_layout() -> html.Div:
         ])
     ])
 ```
-**Justificación**: Layout declarativo. **Mejora**: Agregados tooltips (`title`) para guiar al usuario; filtro nativo en tabla para búsqueda rápida.
 
 ### 5. `app/callbacks.py`
 ```python
@@ -322,7 +321,6 @@ def register_callbacks(app):
         
         return fig_consumo, fig_per_capita, table_data
 ```
-**Justificación**: Callbacks asíncronos. **Mejora**: Manejo de filtros que resultan en datos vacíos, mostrando un gráfico placeholder para mejor UX.
 
 ### 6. `assets/style.css`
 ```css
@@ -368,7 +366,6 @@ def register_callbacks(app):
     .title { font-size: 2em; }
 }
 ```
-**Justificación**: CSS profesional. **Mejora**: Media queries para adaptabilidad en móviles/tablets, esencial para usuarios de EPM en campo.
 
 ### 7. `run.py`
 ```python
@@ -397,19 +394,18 @@ def main():
     # Ejecutar servidor (usa env vars para producción)
     debug = os.getenv('DEBUG', 'True') == 'True'
     port = int(os.getenv('PORT', 8050))
-    app.run_server(debug=debug, host='127.0.0.1', port=port)
+    app.run(debug=debug, host='127.0.0.1', port=port)
 
 if __name__ == '__main__':
     main()
 ```
-**Justificación**: Archivo mínimo. **Mejora**: Integración con `os.getenv` para configuración flexible (e.g., `export PORT=8080` para cambiar puerto), ideal para despliegue en cloud.
 
 ## Instrucciones de Ejecución
 1. **Crear carpeta**: `mkdir epm_dashboard && cd epm_dashboard`.
 2. **Entorno virtual**: `python -m venv venv` → Activa: `source venv/bin/activate` (Linux/Mac) o `venv\Scripts\activate` (Windows).
 3. **Instalar dependencias**: `pip install -r requirements.txt`.
 4. **Crear archivos**: Copia los códigos arriba en sus respectivas ubicaciones; genera el CSV en `data/`.
-5. **Ejecutar**: `python run.py`.
+5. **Ejecutar**: `py run.py`.
 6. **Acceder**: Abre http://127.0.0.1:8050 en tu navegador. Interactúa con dropdowns para filtrar.
 7. **Detener**: Ctrl+C en terminal.
 
