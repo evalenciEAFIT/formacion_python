@@ -136,9 +136,8 @@ def load_and_process_data(file_path: str = 'data/consumo_epm.csv') -> pd.DataFra
     except Exception as e:
         raise ValueError(f"Error procesando datos: {str(e)}")
 
-# Ejemplo de uso (para testing): df = load_and_process_data()
 ```
-**Justificación**: Función "pura" y robusta. **Mejora**: Manejo de excepciones para evitar crashes si el CSV falta o está corrupto, útil en entornos de producción.
+
 
 ### 3. `app/__init__.py`
 ```python
@@ -150,6 +149,7 @@ def load_and_process_data(file_path: str = 'data/consumo_epm.csv') -> pd.DataFra
 
 ### 4. `app/layout.py`
 ```python
+
 from dash import dcc, html, dash_table
 import plotly.express as px
 from utils.data_loader import load_and_process_data
@@ -169,8 +169,13 @@ def create_layout() -> html.Div:
     Mejora: Agregado tooltip en dropdowns para usabilidad; optimizado para carga inicial.
     """
     return html.Div(className='container', children=[
-        # Header: Branding EPM-like
+        # Header: Branding EPM
         html.Header(className='header', children=[
+            html.Div(className='logo-container', children=[
+            html.Img(src='https://www.epm.com.co/content/dam/epm/iconos/logo-epm-70.svg', 
+                    alt='Logo EPM', 
+                    style={'maxWidth': '200px', 'height': 'auto'})
+            ]),
             html.H1('Dashboard de Servicios Públicos EPM', className='title'),
             html.P(
                 'Visualización interactiva de consumo de Agua, Energía y Gas en Medellín y Antioquia. '
@@ -227,8 +232,10 @@ def create_layout() -> html.Div:
             dash_table.DataTable(
                 id='tabla-consumo',
                 columns=[
-                    {'name': col, 'id': col, 'type': 'numeric' if col in ['Consumo', 'Costo', 'Usuarios', 'Consumo_Per_Capita'] else 'text'}
-                    for col in df.columns
+                    {'name': col,
+                     'id': col,
+                     'type': 'numeric' if col in ['Consumo', 'Costo', 'Usuarios', 'Consumo_Per_Capita'] else 'text'
+                    } for col in df.columns
                 ],
                 data=df.to_dict('records'),
                 style_table={'overflowX': 'auto'},
@@ -336,8 +343,8 @@ def register_callbacks(app):
 }
 
 .header { text-align: center; margin-bottom: 30px; }
-.title { color: #004080; font-size: 2.5em; } /* Azul EPM */
-.subtitle { color: #006400; font-size: 1.1em; } /* Verde sostenibilidad */
+.title { color: #116125; font-size: 2.5em; } /* Verde EPM */
+.subtitle { color: #1eb7e6; font-size: 1.1em; } /* Azul sostenibilidad */
 
 .controls {
     display: grid;
