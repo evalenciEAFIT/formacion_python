@@ -1,5 +1,9 @@
 # Guía Completa para Crear un Dashboard Interactivo de Servicios Públicos de EPM
 
+[Nivel 0: Buenas prácticas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel0) | 
+[Nivel 1: Uso de datos en SQL](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel1) |
+[Nivel 2: Uso Pandas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel2) |
+
 ## Introducción
 ### ¿Por qué crear este dashboard?
 Este dashboard interactivo, construido con **Python**, **Pandas** y **Dash**, permite visualizar y analizar datos ficticios pero realistas de consumo por servicio, región y período. 
