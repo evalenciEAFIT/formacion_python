@@ -93,9 +93,13 @@ plotly
 dash-table
 ```
 
-**Instalar el entorno virtual**: `py -m venv venv`. **Justificación**: Instala la entorno virtual. 
-**Activar el entorno virtual**: `.\venv\Scripts\activate`. **Justificación**: Proteje el sistema operativo de instalaciones. 
-**Cómo instalar**: `pip install -r requirements.txt`. **Justificación**: Lista exacta de versiones para reproducibilidad.  **Mejora**: Versiones actualizadas para compatibilidad con Python 3.13+. 
+- **Instalar el entorno virtual**: `py -m venv venv`. 
+- **Justificación**: Instala la entorno virtual. 
+- **Activar el entorno virtual**: `.\venv\Scripts\activate`. 
+- **Justificación**: Proteje el sistema operativo de instalaciones. 
+- **Cómo instalar**: `pip install -r requirements.txt`. 
+- **Justificación**: Lista exacta de versiones para reproducibilidad.  
+- **Mejora**: Versiones actualizadas para compatibilidad con Python 3.13+. 
 
 ### 2. `utils/data_loader.py`
 ```python
