@@ -2,7 +2,9 @@
 
 ## Introducción
 ### ¿Por qué crear este dashboard?
-Este dashboard interactivo, construido con **Python**, **Pandas** y **Dash**, permite visualizar y analizar datos ficticios pero realistas de consumo por servicio, región y período. **¿Por qué es útil?**
+Este dashboard interactivo, construido con **Python**, **Pandas** y **Dash**, permite visualizar y analizar datos ficticios pero realistas de consumo por servicio, región y período. 
+
+**¿Por qué es útil?**
 - **Análisis rápido**: Identifica patrones de consumo (e.g., picos en energía durante meses calurosos) para optimizar recursos.
 - **Interactividad**: Filtra por servicio (agua, energía, gas), región y fechas, facilitando reportes para stakeholders.
 - **Sostenibilidad**: Calcula indicadores como "consumo per cápita" o "emisiones estimadas" para alinear con metas de EPM en eficiencia energética y agua.
