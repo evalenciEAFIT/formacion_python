@@ -250,6 +250,7 @@ def create_layout() -> html.Div:
 ```python
 from dash import Input, Output, callback
 import plotly.express as px
+import pandas as pd
 from utils.data_loader import load_and_process_data
 
 # Cargar datos globales
