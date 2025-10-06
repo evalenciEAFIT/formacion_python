@@ -87,12 +87,15 @@ Cada archivo incluye **docstrings** (explicaciones en código) y comentarios. **
 
 ### 1. `requirements.txt`
 ```
-pandas==2.2.2
-dash==2.17.1
-plotly==5.22.0
-dash-table==5.0.0
+pandas
+dash
+plotly
+dash-table
 ```
-**Cómo instalar**: `pip install -r requirements.txt`. **Justificación**: Lista exacta de versiones para reproducibilidad. **Mejora**: Versiones actualizadas para compatibilidad con Python 3.12+.
+
+**Instalar el entorno virtual**: `py -m venv venv`. **Justificación**: Instala la entorno virtual. 
+**Activar el entorno virtual**: `.\venv\Scripts\activate`. **Justificación**: Proteje el sistema operativo de instalaciones.
+**Cómo instalar**: `pip install -r requirements.txt`. **Justificación**: Lista exacta de versiones para reproducibilidad. **Mejora**: Versiones actualizadas para compatibilidad con Python 3.13+.
 
 ### 2. `utils/data_loader.py`
 ```python
