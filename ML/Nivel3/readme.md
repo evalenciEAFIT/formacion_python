@@ -80,7 +80,7 @@ Gas,Antioquia,2025-03-01,44000,13200000,22500
 
 **Mejora**: Agregamos validación básica en el loader para manejar fechas inválidas o datos faltantes, mejorando robustez.
 
-**Cómo usarlo**: Coloca este archivo en `data/`. En producción, reemplaza con datos reales de EPM (e.g., descarga de https://www.epm.com.co/clientes o APIs).
+**Cómo usarlo**: Coloca este archivo en `data/`. En producción, reemplaza con datos reales de EPM.
 
 ## Código Documentado
 Cada archivo incluye **docstrings** (explicaciones en código) y comentarios. **¿Por qué documentar?** Facilita la comprensión y depuración; sigue PEP 257.
