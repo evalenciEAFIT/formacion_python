@@ -278,15 +278,15 @@ def crear_estructura_proyecto():
 
     # Crear requirements.txt con dependencias
     (raiz / "requirements.txt").write_text(
-        "pandas>=1.3.0\n"
-        "numpy>=1.21.0\n"
-        "scikit-learn>=1.4.0\n"
-        "matplotlib>=3.4.0\n"
-        "seaborn>=0.11.0\n"
-        "plotly>=5.0.0\n"
-        "dash>=2.9.0\n"
-        "colorama>=0.4.4\n"
-        "tqdm>=4.62.0\n",
+        "pandas\n"
+        "numpy\n"
+        "scikit-learn\n"
+        "matplotlib\n"
+        "seaborn\n"
+        "plotly\n"
+        "dash\n"
+        "colorama\n"
+        "tqdm\n",
         encoding="utf-8"
     )
 
