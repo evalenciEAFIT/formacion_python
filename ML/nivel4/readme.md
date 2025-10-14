@@ -1,6 +1,6 @@
 # **Documento Técnico: Sistema de Monitoreo de Represas Hidroeléctricas**  
-### *Versión para entornos industriales (inspirado en EPM)*
-
+### *Versión para entornos industriales (inspirado en EPM)*   
+   
 [Nivel 0: Buenas prácticas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel0) | 
 [Nivel 1: Uso de datos en SQL](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel1) |
 [Nivel 2: Uso Pandas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel2) |
