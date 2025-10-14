@@ -26,12 +26,12 @@ monitoreo-represas-ml/
 ├── logs/                   # Archivos de registro
 ├── reportes/               # Reportes exportados
 ├── src/                    # Código fuente modular
-│   ├── datos/             # Gestión de datos
-│   ├── modelos/           # Análisis y predicción
-│   ├── utilidades/        # Funcionalidades compartidas
-│   └── visualizacion/     # Interfaz de usuario
-├── run.py                 # Punto de entrada principal
-└── setup_project.py       # Script de inicialización
+│   ├── datos/              # Gestión de datos
+│   ├── modelos/            # Análisis y predicción
+│   ├── utilidades/         # Funcionalidades compartidas
+│   └── visualizacion/      # Interfaz de usuario
+├── run.py                  # Punto de entrada principal
+└── setup_project.py        # Script de inicialización
 ```
 
 ### **2.2 Diagrama de Componentes**
