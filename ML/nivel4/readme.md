@@ -762,6 +762,177 @@ def detener_generacion_continua():
 - Manejo robusto de errores para entornos críticos
 
 ---
+## Loger.py  src\utilidades\logger.py
+```python
+"""
+Módulo del sistema de monitoreo de represas hidroeléctricas.
+"""
+"""
+logger.py
+=========
+Configura un sistema de logging unificado para todo el proyecto.
+
+¿PARA QUÉ?
+- Registrar eventos, advertencias y errores de manera consistente.
+- Facilitar la depuración y el monitoreo del sistema.
+- Proporcionar retroalimentación tanto en consola como en archivo.
+
+¿QUÉ HACE?
+- Crea un logger con dos handlers:
+    * Consola: con colores para mejor legibilidad
+    * Archivo: sin colores, con marca de tiempo detallada
+- Almacena los logs en la carpeta 'logs/'
+- Usa colores en la consola si colorama está disponible.
+"""
+
+import logging
+import os
+from pathlib import Path
+from colorama import Fore, Style, init
+
+# Inicializar colorama para soporte de colores en Windows
+init(autoreset=True)
+
+
+class ColoredFormatter(logging.Formatter):
+    """
+    Formateador personalizado que añade colores a los mensajes de log.
+    
+    ¿PARA QUÉ?
+    - Hacer que los mensajes de la consola sean más legibles.
+    - Distinguir rápidamente entre diferentes niveles de severidad.
+    """
+    COLORS = {
+        'DEBUG': Fore.CYAN,
+        'INFO': Fore.GREEN,
+        'WARNING': Fore.YELLOW,
+        'ERROR': Fore.RED,
+        'CRITICAL': Fore.RED + Style.BRIGHT,
+    }
+
+    def format(self, record):
+        """Aplica colores a los mensajes de log."""
+        log_color = self.COLORS.get(record.levelname, '')
+        record.levelname = f"{log_color}{record.levelname}{Style.RESET_ALL}"
+        record.msg = f"{log_color}{record.msg}{Style.RESET_ALL}"
+        return super().format(record)
+
+
+def configurar_logger(nombre="SistemaRepresas"):
+    """
+    Configura y devuelve un logger listo para usar.
+    
+    ¿PARA QUÉ?
+    - Evitar la configuración repetida del logging en cada módulo.
+    - Garantizar consistencia en todo el proyecto.
+    
+    Parámetros:
+    -----------
+    nombre : str
+        Nombre del logger (por defecto: "SistemaRepresas").
+        
+    Retorna:
+    --------
+    logging.Logger
+        Logger configurado y listo para usar.
+    """
+    logger = logging.getLogger(nombre)
+    # Evitar configuración duplicada
+    if logger.handlers:
+        return logger
+
+    # Establecer nivel mínimo
+    logger.setLevel(logging.INFO)
+
+    # Crear carpeta de logs si no existe
+    Path("logs").mkdir(exist_ok=True)
+
+    # Handler para archivo (sin colores, con marca de tiempo completa)
+    archivo_handler = logging.FileHandler("logs/sistema.log", encoding="utf-8")
+    archivo_handler.setLevel(logging.INFO)
+    archivo_formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    archivo_handler.setFormatter(archivo_formatter)
+
+    # Handler para consola (con colores)
+    consola_handler = logging.StreamHandler()
+    consola_handler.setLevel(logging.INFO)
+    consola_formatter = ColoredFormatter(
+        '%(levelname)s - %(message)s'
+    )
+    consola_handler.setFormatter(consola_formatter)
+
+    # Añadir handlers al logger
+    logger.addHandler(archivo_handler)
+    logger.addHandler(consola_handler)
+
+    return logger
+```
+
+## Cargador \src\datos\cargador_datos.py
+```python
+"""
+Módulo del sistema de monitoreo de represas hidroeléctricas.
+"""
+"""
+cargador_datos.py
+=================
+Carga datos desde la base de datos SQLite.
+
+¿PARA QUÉ?
+- Proporcionar una interfaz consistente para acceder a los datos.
+- Convertir los datos de la base de datos a un DataFrame de pandas.
+- Manejar errores de conexión de manera centralizada.
+
+¿QUÉ HACE?
+- Ejecuta una consulta SQL para obtener todos los datos.
+- Convierte la columna 'timestamp' a datetime.
+- Devuelve un DataFrame listo para análisis.
+"""
+
+import pandas as pd
+from .gestor_db import RUTA_DB
+from src.utilidades.logger import configurar_logger
+
+# Configurar logger
+logger = configurar_logger(__name__)
+
+
+def cargar_datos_represa() -> pd.DataFrame:
+    """
+    Carga todos los datos de monitoreo desde la base de datos.
+    
+    ¿PARA QUÉ?
+    - Proporcionar datos actualizados para análisis, modelado o visualización.
+    - Asegurar que los datos estén en el formato correcto (pandas DataFrame).
+    
+    Retorna:
+    --------
+    pd.DataFrame
+        Con columnas: id, timestamp, nivel_agua_pct, energia_almacenada_gwh, generacion_mw.
+        La columna 'timestamp' es de tipo datetime.
+    """
+    try:
+        import sqlite3
+        with sqlite3.connect(RUTA_DB) as conexion:
+            df = pd.read_sql_query("""
+                SELECT id, timestamp, nivel_agua_pct, energia_almacenada_gwh, generacion_mw
+                FROM monitoreo_represa
+                ORDER BY timestamp
+            """, conexion)
+
+        # Convertir timestamp a datetime
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        logger.debug(f"Datos cargados desde la base de datos ({len(df)} registros).")
+        return df
+
+    except Exception as e:
+        logger.error(f"❌ Error al cargar datos: {e}")
+        # Devolver DataFrame vacío en caso de error
+        return pd.DataFrame()
+```
+
 
 ## 📈 **5. Capa de Modelos y Análisis**
 
