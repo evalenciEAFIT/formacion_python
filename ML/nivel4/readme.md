@@ -762,6 +762,107 @@ def detener_generacion_continua():
 - Manejo robusto de errores para entornos críticos
 
 ---
+## run.py
+```python
+"""
+Módulo del sistema de monitoreo de represas hidroeléctricas.
+"""
+"""
+run.py
+======
+Punto de entrada principal del sistema de monitoreo de represas hidroeléctricas.
+
+¿PARA QUÉ?
+- Proporcionar una interfaz clara y consistente para ejecutar el sistema.
+- Orquestar la inicialización y ejecución según el modo seleccionado.
+- Mejorar la experiencia de usuario con retroalimentación visual.
+
+¿QUÉ HACE?
+- Parsea argumentos de línea de comandos.
+- Muestra una barra de progreso durante la inicialización.
+- Ejecuta la funcionalidad correspondiente al modo:
+    * 'eda': Análisis exploratorio de datos históricos
+    * 'entrenar': Entrenamiento de modelo con datos históricos  
+    * 'tablero': Visualización en tiempo real con generación continua
+- Usa imports diferidos para mejorar el rendimiento de inicio.
+"""
+
+import argparse
+from time import sleep
+from tqdm import tqdm
+from src.utilidades.logger import configurar_logger
+
+# Configurar logger para el sistema principal
+logger = configurar_logger("SistemaPrincipal")
+
+
+def simular_carga_con_progreso():
+    """
+    Muestra una barra de progreso durante la inicialización del sistema.
+    
+    ¿PARA QUÉ?
+    - Proporcionar retroalimentación visual al usuario.
+    - Indicar que el sistema está trabajando (especialmente en entornos lentos).
+    - Mejorar la percepción de rendimiento.
+    """
+    for _ in tqdm(range(10), desc="Iniciando sistema", ncols=80):
+        sleep(0.05)
+
+
+def main():
+    """
+    Función principal que coordina toda la ejecución del sistema.
+    """
+    # Configurar parser de argumentos
+    parser = argparse.ArgumentParser(
+        description="Sistema de monitoreo de represas hidroeléctricas."
+    )
+    parser.add_argument(
+        "--modo",
+        choices=["eda", "entrenar", "tablero"],
+        required=True,
+        help="Modo de ejecución: 'eda' (análisis exploratorio), 'entrenar' (modelo predictivo), 'tablero' (visualización en tiempo real)."
+    )
+    parser.add_argument(
+        "--regenerar",
+        action="store_true",
+        help="Regenerar datos en la base de datos (solo aplica a modos 'eda' y 'entrenar')."
+    )
+    args = parser.parse_args()
+
+    # Iniciar sistema con retroalimentación visual
+    logger.info("Iniciando sistema de monitoreo de represas...")
+    simular_carga_con_progreso()
+
+    # Importar módulos específicos según el modo (imports diferidos para mejor rendimiento)
+    from src.datos.cargador_datos import cargar_datos_represa
+    from src.modelos.analisis_descriptivo import analisis_exploratorio
+    from src.modelos.modelo_predictivo import entrenar_modelo_predictivo
+    from src.visualizacion.tablero_tiempo_real import iniciar_tablero
+
+    if args.modo in ["eda", "entrenar"]:
+        # Modos que requieren datos históricos
+        from src.datos.generador_datos import generar_y_guardar_datos_represa
+        generar_y_guardar_datos_represa(forzar_regenerar=args.regenerar)
+        datos_represa = cargar_datos_represa()
+        
+        if args.modo == "eda":
+            logger.info("Ejecutando modo: Análisis Exploratorio (EDA)")
+            analisis_exploratorio(datos_represa)
+        else:
+            logger.info("Ejecutando modo: Entrenamiento de Modelo Predictivo")
+            entrenar_modelo_predictivo(datos_represa)
+            
+    elif args.modo == "tablero":
+        # Modo de visualización en tiempo real
+        logger.info("Ejecutando modo: Tablero de Monitoreo en Tiempo Real")
+        iniciar_tablero()
+
+
+if __name__ == "__main__":
+    main()
+```
+
 ## Loger.py  src\utilidades\logger.py
 ```python
 """
