@@ -6,6 +6,15 @@ Las represas son infraestructuras críticas donde las fallas no anticipadas pued
 
 ---
 
+## ❓ ¿Qué preguntas puede responder el ML?
+
+| Tipo de pregunta | Ejemplo concreto |
+|------------------|------------------|
+| **Clasificación binaria** | ¿Fallará el componente X en los próximos 7 días? (Sí/No) |
+| **Regresión** | ¿Cuántos días faltan para que el sellado de la compuerta falle? |
+| **Detección de anomalías** | ¿Es anómalo el aumento repentino de presión en el muro este? |
+| **Priorización** | ¿Qué componente tiene mayor riesgo hoy y debe revisarse primero? |
+
 ## 2. 🤖 ¿Por qué Random Forest es la mejor opción?
 
 ### Random Forest
