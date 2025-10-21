@@ -785,7 +785,23 @@ ALERT_EMAIL_USER=tu_correo@gmail.com
 ALERT_EMAIL_PASS=contraseña_de_aplicacion
 ALERT_EMAIL_RECIPIENTS=ingeniero1@empresa.com
 ```
++### 2.1. Obtén una "contraseña de aplicación" en Gmail
+1. Ve a [https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+2. Inicia sesión
+3. Selecciona **"Otra"** → nombre: `represa_ml`
+4. Haz clic en **"Generar"**
+5. Copia la contraseña de 16 caracteres (ej. `abcd efgh ijkl mnop`)
 
+> ⚠️ **Nunca uses tu contraseña normal de Gmail**. Solo usa la contraseña de aplicación.
+
+### 2.2. Configura las variables de entorno (en la misma terminal)
+```powershell
+$env:ALERT_EMAIL_USER="tu_correo@gmail.com"
+$env:ALERT_EMAIL_PASS="abcd efgh ijkl mnop"          # ← Tu contraseña de aplicación
+$env:ALERT_EMAIL_RECIPIENTS="ingeniero1@empresa.com,ingeniero2@empresa.com"
+```
+
+> 💡 **Importante**: estas variables **solo existen en esta terminal**. Si la cierras, debes volver a configurarlas.
 ### Paso 3: Generar datos
 ```powershell
 python generate_data_cli.py --components 50 --days 1095 --freq-hours 1.0
