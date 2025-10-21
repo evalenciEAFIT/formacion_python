@@ -32,7 +32,7 @@ El **mantenimiento predictivo** usa datos para:
 
 ---
 
-## 2. 🤖 Modelo de Machine Learning: Random Forest (Explicación Profunda)
+## 2. 🤖 Modelo de Machine Learning: Random Forest
 
 ### 2.1. ¿Por qué Random Forest?
 | Criterio | Random Forest | Otros modelos |
@@ -59,7 +59,7 @@ El **mantenimiento predictivo** usa datos para:
    - **Reducción de varianza**: promedio de muchos árboles → menos sobreajuste.
    - **Importancia de variables**: mide cuánto mejora la predicción al usar una variable.
 
-### 2.3. Métricas de evaluación (explicadas para represas)
+### 2.3. Métricas de evaluación
 
 #### Matriz de confusión
 |                     | **Predicho: No falla** | **Predicho: Falla** |
@@ -731,5 +731,3 @@ Este sistema implementa un **enfoque profesional de mantenimiento predictivo** p
 - Integrar con sensores reales (API o archivos CSV actualizados).  
 - Agregar dashboard Streamlit para monitoreo en tiempo real.  
 - Exportar alertas a Excel para seguimiento gerencial.  
-
-¿Necesitas ayuda con alguno de estos pasos? Estoy aquí para seguir construyendo contigo.
