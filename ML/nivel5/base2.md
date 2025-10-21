@@ -1,17 +1,3 @@
-Perfecto, Edi. A continuación, te presento la **Guía Paso a Paso Completa y Actualizada** para el **Sistema de Mantenimiento Predictivo de una Represa con Machine Learning**, ahora incluyendo:
-
-✅ Generación de datos dummy  
-✅ Entrenamiento de modelo (Random Forest)  
-✅ Dashboard interactivo (Streamlit)  
-✅ **Alerta sonora en Windows**  
-✅ **Generación automática de informe PDF**  
-✅ **Programación diaria con Task Scheduler**  
-✅ **Notificaciones por correo electrónico al detectar alto riesgo**
-
-Todo con **buenas prácticas**, **estructura clara de directorios**, **comentarios explicativos** y **código modular**.
-
----
-
 # 📘 Guía Paso a Paso: Sistema de Mantenimiento Predictivo para Represas con Machine Learning
 
 ---
