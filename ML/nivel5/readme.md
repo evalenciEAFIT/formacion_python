@@ -1,5 +1,4 @@
-# 📘 Guía Completa: Mantenimiento Predictivo en Represas con Machine Learning  
-
+# Mantenimiento Predictivo en Represas con Machine Learning  
    
 [Nivel 0: Buenas prácticas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel0) | 
 [Nivel 1: Uso de datos en SQL](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel1) |
