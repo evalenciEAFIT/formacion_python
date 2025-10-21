@@ -224,7 +224,7 @@ represa_ml/
 
 ---
 
-## 5. 💻 Códigos Completos en Python
+## 5. 💻 Códigos en Python
 
 ### 📄 `install_project.py`
 ```python
