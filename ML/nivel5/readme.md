@@ -1,5 +1,14 @@
 # 📘 Guía Completa: Mantenimiento Predictivo en Represas con Machine Learning  
 
+   
+[Nivel 0: Buenas prácticas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel0) | 
+[Nivel 1: Uso de datos en SQL](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel1) |
+[Nivel 2: Uso Pandas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel2) |
+[Nivel 3: Uso Dash](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/Nivel3) | 
+[Nivel 4: Ejemplo Proyecto](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel4) | 
+[Nivel 5: Ejemplo Proyecto](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel5)
+
+
 ## 1. 🌊 Situación del problema
 
 Las represas son infraestructuras críticas donde las fallas no anticipadas pueden causar riesgos de seguridad, impacto ambiental y altos costos operativos. El mantenimiento predictivo con Machine Learning permite **predecir fallas 7 días antes** de que ocurran.
