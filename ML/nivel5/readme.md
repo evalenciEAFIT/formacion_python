@@ -959,10 +959,6 @@ python scripts/schedule_daily_task.py --install --hour 6
 
 ### Bonus: Uso de Logs
 
-¡Excelente observación, Edi! A continuación, te presento la **versión mejorada de todos los códigos** con **sistema de logging completo**, que registra eventos, advertencias y errores en archivos de log estructurados, manteniendo toda la funcionalidad anterior.
-
----
-
 ## 📝 Implementación del sistema de logging
 
 ### Principios del logging implementado:
