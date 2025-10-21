@@ -85,7 +85,7 @@ install_project.py
 Propósito:
 - Crear la estructura de directorios del proyecto.
 - Crear archivos vacíos en las rutas correctas.
-- NO instalar paquetes ni escribir lógica (eso se hace manualmente o en otro paso).
+- NO instalar paquetes ni escribir lógica (eso se hace manualmente).
 
 ¿Por qué así?
 - Permite revisar/editar cada archivo antes de usarlo.
@@ -93,7 +93,7 @@ Propósito:
 - Evita sobrescribir cambios si ya existen archivos.
 
 Cómo usar:
-1. Guarda este archivo en una carpeta vacía (ej. C:\proyectos\)
+1. Guarda este archivo en una carpeta vacía (ej. C:\\proyectos\\)
 2. Ejecuta: python install_project.py
 3. Se creará la carpeta 'represa_ml' con todos los archivos vacíos.
 """
@@ -126,21 +126,26 @@ ARCHIVOS = [
 
 def crear_estructura():
     """Crea directorios y archivos vacíos."""
-    os.makedirs("represa_ml", exist_ok=True)
-    os.chdir("represa_ml")
+    project_dir = "represa_ml"
+    os.makedirs(project_dir, exist_ok=True)
     
     # Crear directorios
     for d in DIRECTORIOS:
-        os.makedirs(d, exist_ok=True)
+        ruta = os.path.join(project_dir, d)
+        os.makedirs(ruta, exist_ok=True)
     
     # Crear archivos vacíos
     for archivo in ARCHIVOS:
-        os.makedirs(os.path.dirname(archivo), exist_ok=True)
-        with open(archivo, "w", encoding="utf-8") as f:
+        ruta_completa = os.path.join(project_dir, archivo)
+        dir_name = os.path.dirname(ruta_completa)
+        # Solo crear directorio si no es raíz (evita makedirs(""))
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
+        with open(ruta_completa, "w", encoding="utf-8") as f:
             pass  # Archivo vacío
     
     print("✅ Estructura de proyecto creada en 'represa_ml/'.")
-    print("📝 Ahora edita cada archivo con el código correspondiente (ver sección siguiente).")
+    print("📝 Ahora edita cada archivo con el código correspondiente.")
 
 if __name__ == "__main__":
     crear_estructura()
