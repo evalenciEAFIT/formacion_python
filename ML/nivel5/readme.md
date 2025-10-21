@@ -925,7 +925,7 @@ ALERT_EMAIL_USER=tu_correo@gmail.com
 ALERT_EMAIL_PASS=contraseña_de_aplicacion
 ALERT_EMAIL_RECIPIENTS=ingeniero1@empresa.com
 ```
-+### 2.1. Obtén una "contraseña de aplicación" en Gmail
+### 2.1. Obtén una "contraseña de aplicación" en Gmail
 1. Ve a [https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
 2. Inicia sesión
 3. Selecciona **"Otra"** → nombre: `represa_ml`
