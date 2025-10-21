@@ -2,341 +2,260 @@
 
 ---
 
-## 1. 🎯 Objetivo del sistema
+## 1. 🎯 ¿Cuál es el problema?
 
-**Problema**:  
-Las represas son infraestructuras críticas. Fallas no anticipadas pueden causar daños estructurales, interrupciones energéticas o riesgos ambientales.
+Las represas son infraestructuras críticas. Una falla no anticipada en compuertas, muros o turbinas puede causar:
+- Riesgos de seguridad (inundaciones, colapsos)
+- Interrupciones en el suministro de agua o energía
+- Costos elevados de reparación de emergencia
 
-**Solución**:  
-Un sistema automatizado que:
-- Monitorea sensores y condiciones operativas.
-- **Predice fallas 7 días antes** usando ML.
-- **Alerta al equipo técnico** mediante:
-  - Sonido local (en centro de control)
-  - Correo electrónico (para personal remoto)
-- **Documenta resultados** en informes PDF.
-- **Se ejecuta diariamente sin intervención humana**.
+**Solución tradicional**: mantenimiento programado cada X meses → ineficiente (se mantiene lo que no necesita, y se descuida lo que sí).
+
+**Solución inteligente**: usar **Machine Learning (ML)** para predecir fallas **antes de que ocurran**, basado en datos reales.
 
 ---
 
-## 2. ❓ Preguntas que resuelve el ML
+## 2. ❓ ¿Qué preguntas responde el ML?
 
-| Tipo | Pregunta | Acción derivada |
-|------|--------|------------------|
-| Clasificación | ¿Fallará el componente X en los próximos 7 días? | Activar alerta si prob > 70% |
-| Ranking | ¿Qué componente tiene mayor riesgo hoy? | Priorizar inspección |
-| Tendencia | ¿Está empeorando la vibración en la turbina? | Programar mantenimiento preventivo |
+| Pregunta | Tipo de modelo | Acción derivada |
+|--------|----------------|------------------|
+| ¿Fallará este componente en los próximos 7 días? | Clasificación binaria | Activar alerta si probabilidad > 70% |
+| ¿Qué componente tiene mayor riesgo hoy? | Ranking por probabilidad | Priorizar inspección técnica |
+| ¿Es normal este aumento de presión? | Detección de anomalías | Revisar sensores o estructura |
 
-> Enfoque principal: **clasificación binaria con umbral de probabilidad**.
+> En este proyecto: **clasificación binaria** → "¿Falla en 7 días? Sí/No".
 
 ---
 
-## 3. 📊 Datos necesarios
+## 3. 🌳 ¿Qué es Random Forest? (Explicación clara y completa)
+
+### Definición simple:
+**Random Forest** (Bosque Aleatorio) es un algoritmo de ML que combina **muchos árboles de decisión** para tomar una decisión más precisa y robusta.
+
+### ¿Cómo funciona?
+1. **Árbol de decisión**: un modelo que hace preguntas tipo "¿presión > 1.5 bar?" y sigue ramas hasta una predicción.
+2. **Problema**: un solo árbol puede sobreajustarse (aprender ruido, no patrones reales).
+3. **Solución**: Random Forest crea **cientos de árboles**, cada uno entrenado con:
+   - Una **muestra aleatoria** de los datos (con reemplazo → *bootstrap*)
+   - Un **subconjunto aleatorio** de variables en cada división
+4. **Predicción final**: votación mayoritaria (clasificación) o promedio (regresión) de todos los árboles.
+
+### ¿Por qué usarlo en mantenimiento predictivo?
+- ✅ Maneja bien datos desbalanceados (pocas fallas vs muchos días sin falla)
+- ✅ No requiere normalización de datos
+- ✅ Proporciona **importancia de variables** → interpretable
+- ✅ Resistente al ruido y a valores atípicos
+
+> En resumen: **más árboles = menos error, más estabilidad**.
+
+---
+
+## 4. 📊 Métricas de desempeño: Precisión, Recall y F1-Score
+
+En problemas de mantenimiento, **no todas las fallas son iguales**. Un falso negativo (decir "no fallará" cuando sí fallará) es mucho más grave que un falso positivo (decir "fallará" cuando no).
+
+### Matriz de confusión (base de todo):
+|                     | **Predicho: No falla** | **Predicho: Falla** |
+|---------------------|------------------------|---------------------|
+| **Real: No falla**  | Verdadero Negativo (VN) | Falso Positivo (FP) |
+| **Real: Falla**     | **Falso Negativo (FN)** | Verdadero Positivo (VP) |
+
+> **FN es el peor error**: falla real no detectada.
+
+### Métricas clave:
+
+#### 1. **Precisión (Precision)**
+> ¿De todas las veces que dijimos "va a fallar", cuántas veces tuvimos razón?
+
+\[
+\text{Precisión} = \frac{VP}{VP + FP}
+\]
+
+- Alta precisión → pocas falsas alarmas.
+- Útil si el costo de una falsa alarma es alto (ej. parar operación innecesariamente).
+
+#### 2. **Recall (Sensibilidad o Tasa de Verdaderos Positivos)**
+> ¿De todas las fallas reales, cuántas detectamos?
+
+\[
+\text{Recall} = \frac{VP}{VP + FN}
+\]
+
+- Alto recall → detectamos casi todas las fallas.
+- **Crítico en mantenimiento predictivo**: queremos minimizar FN.
+
+#### 3. **F1-Score**
+> Promedio armónico entre precisión y recall. Útil cuando hay desbalance.
+
+\[
+F1 = 2 \cdot \frac{\text{Precisión} \cdot \text{Recall}}{\text{Precisión} + \text{Recall}}
+\]
+
+- Valor entre 0 y 1. Cuanto más cerca de 1, mejor.
+- Ideal cuando necesitas equilibrar falsas alarmas y fallas no detectadas.
+
+> **En represas: priorizamos RECALL alto**, aunque aumente ligeramente las falsas alarmas.
+
+---
+
+## 5. 📊 Datos necesarios
 
 ### Fuentes:
-- **Sensores IoT**: presión, humedad, vibración, temperatura.
-- **Ambientales**: lluvia acumulada, nivel del embalse.
-- **Históricos**: fechas de mantenimiento y fallas.
+- **Sensores**: presión, humedad, vibración, temperatura (cada hora)
+- **Ambientales**: lluvia acumulada (24h, 72h), nivel del embalse
+- **Históricos**: fechas de mantenimiento y fallas
 
 ### Etiqueta (`target`):
-- `falla_prox_7d = 1` si hubo falla en los 7 días posteriores a la observación.
+- `falla_prox_7d = 1` si hubo falla en los próximos 7 días desde esa observación.
 - `= 0` en caso contrario.
 
-> **Importante**: la etiqueta se construye mirando al futuro, pero el modelo solo usa datos pasados → evita *data leakage*.
+> **Clave**: la etiqueta se construye mirando al futuro, pero el modelo solo usa datos **hasta ese momento** → evita fuga de información.
 
 ---
 
-## 4. 🤖 Modelo de ML
-
-- **Algoritmo**: `RandomForestClassifier`
-- **Ventajas**:
-  - Maneja datos desbalanceados (pocas fallas).
-  - No requiere normalización.
-  - Proporciona **importancia de variables** → interpretable.
-- **Salida**:
-  - Predicción binaria
-  - Probabilidad de falla
-  - Métricas de desempeño (precisión, recall, F1)
-
----
-
-## 5. 🗂️ Estructura del proyecto
+## 6. 🗂️ Estructura del proyecto
 
 ```
 represa_ml/
 ├── install_project.py          ← Instalador automático
 ├── requirements.txt
-├── main.py
-├── data/
-├── models/
-├── reports/                    ← Informes PDF
+├── main.py                     ← Flujo principal
+├── data/                       ← Datos crudos
+├── models/                     ← Modelo entrenado (.pkl)
+├── reports/                    ← Informes PDF generados
 ├── logs/                       ← Registros diarios
 ├── scripts/
 │   ├── schedule_daily_task.py  ← Gestiona tarea programada
 │   └── run_scheduled.py        ← Ejecuta main.py diariamente
-├── src/
-│   ├── __init__.py
-│   ├── data_generation.py      ← Genera datos dummy
-│   ├── data_preparation.py     ← Crea features y etiquetas
-│   ├── model.py                ← Entrena y evalúa modelo
-│   ├── alerts.py               ← Alerta sonora
-│   ├── email_alert.py          ← Notificación por correo ✨
-│   └── report_pdf.py           ← Genera informe PDF
-└── venv/
+└── src/
+    ├── __init__.py
+    ├── data_generation.py      ← Genera datos dummy realistas
+    ├── data_preparation.py     ← Crea features y etiquetas
+    ├── model.py                ← Entrena modelo y evalúa métricas
+    ├── alerts.py               ← Alerta sonora + correo
+    ├── email_alert.py          ← Envía notificaciones por email
+    └── report_pdf.py           ← Genera informe PDF con métricas y gráficos
 ```
 
 ---
 
-## 6. 💻 Código clave (con comentarios explicativos)
+## 7. 💻 Código clave (con comentarios explicativos)
 
-### 📄 `src/email_alert.py`
+### 📄 `src/model.py` (fragmento relevante)
 ```python
-"""
-Envía notificaciones por correo electrónico cuando se detecta ALTO RIESGO.
+# Entrenar modelo
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
 
-Propósito:
-- Alertar a ingenieros o supervisores remotos cuando la probabilidad de falla > umbral.
-- Complementa la alerta sonora local (útil si nadie está en el centro de control).
-
-¿Por qué correo?
-- Es universal, asíncrono y deja registro.
-- Ideal para equipos distribuidos.
-
-Configuración requerida:
-- Correo remitente (ej. Gmail, Outlook)
-- Contraseña de aplicación (no contraseña personal)
-- Lista de destinatarios
-
-Cómo funciona:
-1. Usa SMTP (estándar de envío de correo).
-2. Crea mensaje con asunto y cuerpo claro.
-3. Adjunta informe PDF si está disponible.
-4. Maneja errores silenciosamente (no detiene el flujo principal).
-"""
-
-import smtplib
-import os
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
-from datetime import datetime
-
-def send_email_alert(
-    probability: float,
-    threshold: float = 0.7,
-    latest_report_path: str = None
-):
-    """
-    Envía un correo si la probabilidad supera el umbral.
-
-    Parámetros:
-    - probability: probabilidad de falla (0.0–1.0)
-    - threshold: umbral para activar alerta (por defecto 0.7)
-    - latest_report_path: ruta al último informe PDF (opcional, para adjuntar)
-    """
-    if probability <= threshold:
-        return  # No hay alerta
-
-    # Configuración desde variables de entorno (mejor que hardcodear)
-    sender_email = os.getenv("ALERT_EMAIL_USER")
-    sender_password = os.getenv("ALERT_EMAIL_PASS")
-    recipients = os.getenv("ALERT_EMAIL_RECIPIENTS", "").split(",")
-
-    if not sender_email or not sender_password or not recipients[0]:
-        print("📧 Correo no configurado. Define ALERT_EMAIL_USER, ALERT_EMAIL_PASS y ALERT_EMAIL_RECIPIENTS.")
-        return
-
-    try:
-        # Crear mensaje
-        msg = MIMEMultipart()
-        msg["From"] = sender_email
-        msg["To"] = ", ".join(recipients)
-        msg["Subject"] = "🚨 ALERTA: Alto riesgo de falla en represa"
-
-        body = f"""
-        Se ha detectado un alto riesgo de falla en un componente de la represa.
-
-        - Probabilidad estimada: {probability:.2%}
-        - Umbral de alerta: {threshold:.0%}
-        - Fecha y hora: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-
-        Por favor, revise el sistema inmediatamente.
-        """
-        msg.attach(MIMEText(body, "plain"))
-
-        # Adjuntar informe PDF si existe
-        if latest_report_path and os.path.exists(latest_report_path):
-            with open(latest_report_path, "rb") as attachment:
-                part = MIMEBase("application", "octet-stream")
-                part.set_payload(attachment.read())
-            encoders.encode_base64(part)
-            part.add_header(
-                "Content-Disposition",
-                f"attachment; filename= {os.path.basename(latest_report_path)}"
-            )
-            msg.attach(part)
-
-        # Enviar correo
-        server = smtplib.SMTP("smtp.gmail.com", 587)  # Cambia si usas Outlook, etc.
-        server.starttls()
-        server.login(sender_email, sender_password)
-        text = msg.as_string()
-        server.sendmail(sender_email, recipients, text)
-        server.quit()
-
-        print("📧 Correo de alerta enviado exitosamente.")
-    except Exception as e:
-        print(f"❌ Error al enviar correo: {e}")
+# Evaluar
+y_pred = model.predict(X_test)
+report_str = classification_report(y_test, y_pred)  # Incluye precisión, recall, F1
+cm = confusion_matrix(y_test, y_pred)
 ```
+
+El `classification_report` muestra algo como:
+```
+              precision    recall  f1-score   support
+           0       0.98      0.99      0.99      1420
+           1       0.85      0.76      0.80        80
+```
+→ Para la clase `1` (falla):  
+- **Precisión = 85%**: 85 de cada 100 alertas fueron reales.  
+- **Recall = 76%**: detectamos 76 de cada 100 fallas reales.  
+- **F1 = 80%**: buen equilibrio.
 
 ---
 
-### 📄 `src/alerts.py` (actualizado)
+## 8. 🔔 Alertas y notificaciones
+
+### Alerta sonora (Windows)
+- Usa `winsound.MessageBeep()` → sonido del sistema.
+- Solo si `probabilidad > 0.7`.
+
+### Notificación por correo
+- Se envía a lista de ingenieros.
+- Incluye:
+  - Probabilidad de falla
+  - Fecha y hora
+  - **Informe PDF adjunto** (con métricas y gráficos)
+
+> Configuración segura: credenciales en **variables de entorno**, nunca en código.
+
+---
+
+## 9. 📄 Informe PDF automático
+
+Cada entrenamiento genera un PDF en `reports/` con:
+- Resumen de datos (muestras, fallas)
+- Métricas (precisión, recall, F1)
+- Matriz de confusión
+- Gráfico de importancia de variables
+
+Ejemplo de uso en `main.py`:
 ```python
-"""
-Integra alerta sonora y por correo.
-
-Propósito:
-- Centralizar todas las alertas en una sola función.
-- Facilitar futuras extensiones (SMS, Slack, etc.).
-"""
-
-import os
-from .email_alert import send_email_alert
-
-def emit_alert_if_high_risk(
-    probability: float,
-    threshold: float = 0.7,
-    latest_report_path: str = None
-):
-    """
-    Activa alertas sonora y por correo si el riesgo es alto.
-    """
-    if probability <= threshold:
-        return
-
-    # Alerta sonora (solo Windows)
-    if os.name == 'nt':
-        try:
-            import winsound
-            winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
-            print("🔊 ¡ALERTA SONORA ACTIVADA!")
-        except Exception as e:
-            print(f"⚠️ Error en alerta sonora: {e}")
-
-    # Alerta por correo
-    send_email_alert(probability, threshold, latest_report_path)
+model, pdf_path = train_model(df_ml)
+emit_alert_if_high_risk(proba, latest_report_path=pdf_path)
 ```
 
 ---
 
-### 📄 `src/report_pdf.py` (actualizado para devolver ruta)
-```python
-# ... (código anterior igual) ...
+## 10. 📅 Ejecución diaria automatizada
 
-def generate_pdf_report(...):
-    # ... (código anterior) ...
-    c.save()
-    print(f"📄 Informe PDF generado: {pdf_path}")
-    return pdf_path  # ← Devuelve la ruta para usar en alertas
-```
+### Componentes:
+- `scripts/run_scheduled.py`: wrapper que activa venv y ejecuta `main.py`
+- `scripts/schedule_daily_task.py`: instala/elimina tarea en Task Scheduler
 
----
-
-### 📄 `src/model.py` (actualizado)
-```python
-# ... (al final de train_model) ...
-if generate_report:
-    pdf_path = generate_pdf_report(...)  # Captura la ruta
-    return model, pdf_path
-return model, None
-```
-
----
-
-### 📄 `main.py` (actualizado)
-```python
-# ... (después de entrenar) ...
-model, latest_pdf = train_model(df_ml)
-
-# Predicción de ejemplo
-ejemplo = np.array([[1.8, 85, 2.1, 28, 120]])
-proba = model.predict_proba(ejemplo)[0][1]
-
-# Activar alertas (sonora + correo)
-emit_alert_if_high_risk(proba, threshold=0.7, latest_report_path=latest_pdf)
-```
-
----
-
-## 7. 🔐 Configuración de correo (segura)
-
-Nunca guardes contraseñas en el código. Usa **variables de entorno**:
-
-### En Windows (PowerShell):
+### Comando para programar a las 6:00 AM:
 ```powershell
-$env:ALERT_EMAIL_USER="tu_correo@gmail.com"
-$env:ALERT_EMAIL_PASS="tu_contraseña_de_aplicacion"
-$env:ALERT_EMAIL_RECIPIENTS="ingeniero1@empresa.com,ingeniero2@empresa.com"
+python scripts/schedule_daily_task.py --install --hour 6
 ```
-
-> 💡 **Importante**: usa **contraseña de aplicación** (no tu contraseña de Gmail).  
-> Guía: [https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-
----
-
-## 8. 📅 Ejecución diaria automatizada
-
-Ya cubierta en `scripts/schedule_daily_task.py` y `scripts/run_scheduled.py`.
 
 Cada día:
-1. Se ejecuta `run_scheduled.py`
-2. Se entrena el modelo con datos actualizados (si los hubiera)
-3. Se genera nuevo PDF
+1. Se generan datos actualizados (o se cargarían datos reales en producción)
+2. Se entrena el modelo
+3. Se genera informe PDF
 4. Se evalúa riesgo → se envían alertas si aplica
 
 ---
 
-## 9. ▶️ Flujo de uso completo
+## 11. ▶️ Cómo empezar (resumen de pasos)
 
-### Primera vez:
-```powershell
-# 1. Instalar proyecto
-python install_project.py
+1. **Ejecutar instalador**:
+   ```bash
+   python install_project.py
+   ```
 
-# 2. Configurar variables de entorno (correo)
-$env:ALERT_EMAIL_USER="..."
-$env:ALERT_EMAIL_PASS="..."
-$env:ALERT_EMAIL_RECIPIENTS="..."
+2. **Configurar correo** (PowerShell):
+   ```powershell
+   $env:ALERT_EMAIL_USER="tu_correo@gmail.com"
+   $env:ALERT_EMAIL_PASS="contraseña_de_aplicacion"
+   $env:ALERT_EMAIL_RECIPIENTS="ingeniero1@empresa.com,ingeniero2@empresa.com"
+   ```
 
-# 3. Probar manualmente
-.\venv\Scripts\activate
-python main.py
-```
+3. **Probar manualmente**:
+   ```bash
+   venv\Scripts\activate
+   python main.py
+   ```
 
-### Programar diariamente:
-```powershell
-# Ejecutar como administrador
-python scripts/schedule_daily_task.py --install --hour 6
-```
+4. **Programar diariamente** (como administrador):
+   ```bash
+   python scripts/schedule_daily_task.py --install --hour 6
+   ```
 
-### Usar dashboard:
-```powershell
-streamlit run src/dashboard.py
-```
-
----
-
-## 10. 📌 Beneficios finales
-
-- ✅ **Alertas multicanal**: sonido + correo
-- ✅ **Documentación automática**: PDF diario
-- ✅ **Ejecución sin intervención**: Task Scheduler
-- ✅ **Seguridad**: contraseñas en variables de entorno
-- ✅ **Código explicado**: cada función tiene su "qué, cómo y por qué"
-- ✅ **Listo para producción**: estructura profesional y escalable
+5. **Usar dashboard interactivo**:
+   ```bash
+   streamlit run src/dashboard.py
+   ```
 
 ---
 
-¿Te gustaría ahora agregar **exportación de alertas a Excel** o **integración con una API de sensores reales**? Estoy listo para seguir construyendo contigo este sistema de monitoreo inteligente.
+## 12. 📌 Beneficios finales
+
+- ✅ **Prevención real**: detecta fallas antes de que ocurran
+- ✅ **Decisiones basadas en datos**: no en suposiciones
+- ✅ **Alertas multicanal**: sonido local + correo remoto
+- ✅ **Auditable**: cada ejecución deja PDF y log
+- ✅ **Automático**: funciona sin intervención diaria
+- ✅ **Interpretable**: sabes por qué el modelo alerta (importancia de variables)
+
