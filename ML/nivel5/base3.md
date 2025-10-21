@@ -76,7 +76,7 @@ represa_ml/
 
 ## 4. 🛠️ Script de instalación: `install_project.py`
 
-Este script **solo crea la estructura**, sin escribir contenido en los archivos.
+Este script **crea la estructura**, sin escribir contenido en los archivos.
 
 ```python
 """
@@ -84,30 +84,38 @@ install_project.py
 
 Propósito:
 - Crear la estructura de directorios del proyecto.
-- Crear archivos vacíos en las rutas correctas.
-- NO instalar paquetes ni escribir lógica (eso se hace manualmente).
+- Crear archivos vacíos.
+- Crear un entorno virtual (venv).
+- Instalar dependencias desde requirements.txt.
 
 ¿Por qué así?
-- Permite revisar/editar cada archivo antes de usarlo.
-- Facilita la comprensión del flujo del proyecto.
-- Evita sobrescribir cambios si ya existen archivos.
+- Automatiza la configuración inicial.
+- Aísla las dependencias del sistema.
+- Permite comenzar a trabajar inmediatamente.
 
 Cómo usar:
-1. Guarda este archivo en una carpeta vacía (ej. C:\\proyectos\\)
+1. Guarda este archivo en una carpeta vacía (ej. C:/proyectos/)
 2. Ejecuta: python install_project.py
-3. Se creará la carpeta 'represa_ml' con todos los archivos vacíos.
+3. ¡Listo! Tendrás todo configurado en 'represa_ml/'.
 """
 
 import os
+import sys
+import subprocess
+import venv
 
-# Definir estructura
-DIRECTORIOS = [
-    "data",
-    "models",
-    "reports",
-    "logs",
-    "scripts",
-    "src"
+# ==============================
+# Configuración
+# ==============================
+PROJECT_NAME = "represa_ml"
+REQUIREMENTS = [
+    "pandas",
+    "numpy",
+    "scikit-learn",
+    "streamlit",
+    "joblib",
+    "matplotlib",
+    "reportlab"
 ]
 
 ARCHIVOS = [
@@ -124,31 +132,100 @@ ARCHIVOS = [
     "scripts/schedule_daily_task.py"
 ]
 
-def crear_estructura():
+DIRECTORIOS = [
+    "data",
+    "models",
+    "reports",
+    "logs",
+    "scripts",
+    "src"
+]
+
+# ==============================
+# Funciones
+# ==============================
+def crear_estructura(base_path):
     """Crea directorios y archivos vacíos."""
-    project_dir = "represa_ml"
-    os.makedirs(project_dir, exist_ok=True)
-    
     # Crear directorios
     for d in DIRECTORIOS:
-        ruta = os.path.join(project_dir, d)
-        os.makedirs(ruta, exist_ok=True)
+        os.makedirs(os.path.join(base_path, d), exist_ok=True)
     
-    # Crear archivos vacíos
+    # Escribir requirements.txt con contenido
+    req_path = os.path.join(base_path, "requirements.txt")
+    with open(req_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(REQUIREMENTS))
+    
+    # Crear otros archivos vacíos
     for archivo in ARCHIVOS:
-        ruta_completa = os.path.join(project_dir, archivo)
+        if archivo == "requirements.txt":
+            continue  # Ya creado
+        ruta_completa = os.path.join(base_path, archivo)
         dir_name = os.path.dirname(ruta_completa)
-        # Solo crear directorio si no es raíz (evita makedirs(""))
         if dir_name:
             os.makedirs(dir_name, exist_ok=True)
         with open(ruta_completa, "w", encoding="utf-8") as f:
             pass  # Archivo vacío
+
+def crear_entorno_virtual(env_path):
+    """Crea el entorno virtual."""
+    print("🛠️ Creando entorno virtual...")
+    venv.create(env_path, with_pip=True)
+    print(f"✅ Entorno virtual creado en: {env_path}")
+
+def instalar_dependencias(env_path):
+    """Instala las dependencias en el entorno virtual."""
+    print("📦 Instalando dependencias...")
+    # Determinar ruta del intérprete de Python en el entorno virtual
+    if os.name == "nt":  # Windows
+        python_exe = os.path.join(env_path, "Scripts", "python.exe")
+    else:  # Linux/Mac
+        python_exe = os.path.join(env_path, "bin", "python")
     
-    print("✅ Estructura de proyecto creada en 'represa_ml/'.")
-    print("📝 Ahora edita cada archivo con el código correspondiente.")
+    req_file = os.path.join(env_path, "..", "requirements.txt")
+    req_file = os.path.abspath(req_file)
+    
+    try:
+        subprocess.check_call([python_exe, "-m", "pip", "install", "-r", req_file])
+        print("✅ Dependencias instaladas.")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Error al instalar dependencias: {e}")
+        sys.exit(1)
+
+# ==============================
+# Ejecución principal
+# ==============================
+def main():
+    if os.path.basename(os.getcwd()) == PROJECT_NAME:
+        print("⚠️ Ejecuta este script desde una carpeta PADRE (no dentro de 'represa_ml').")
+        sys.exit(1)
+    
+    base_dir = os.path.abspath(PROJECT_NAME)
+    env_dir = os.path.join(base_dir, "venv")
+    
+    print(f"🚀 Creando proyecto '{PROJECT_NAME}'...")
+    
+    # Crear estructura y archivos
+    os.makedirs(base_dir, exist_ok=True)
+    crear_estructura(base_dir)
+    
+    # Crear entorno virtual
+    crear_entorno_virtual(env_dir)
+    
+    # Instalar dependencias
+    instalar_dependencias(env_dir)
+    
+    print("\n🎉 ¡Instalación completada!")
+    print(f"\n📌 Pasos siguientes:")
+    print(f"1. Activa el entorno virtual:")
+    if os.name == "nt":
+        print(f"   {PROJECT_NAME}\\venv\\Scripts\\activate")
+    else:
+        print(f"   source {PROJECT_NAME}/venv/bin/activate")
+    print(f"2. Edita los archivos vacíos con el código de la guía.")
+    print(f"3. Ejecuta: python main.py")
 
 if __name__ == "__main__":
-    crear_estructura()
+    main()
 ```
 
 ---
