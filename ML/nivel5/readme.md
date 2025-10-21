@@ -18,7 +18,7 @@ En sectores como la **gestión de represas**, la **distribución de agua**, el *
 
 ---
 
-## **1. Tipos de Problemas en Servicios Públicos**
+## **A. Tipos de Problemas en Servicios Públicos**
 
 Antes de elegir un modelo, es clave identificar el **tipo de problema**:
 
@@ -32,9 +32,9 @@ Antes de elegir un modelo, es clave identificar el **tipo de problema**:
 
 ---
 
-## **2. Modelos de Machine Learning y su Aplicación**
+## **B. Modelos de Machine Learning y su Aplicación**
 
-### **2.1. Regresión Lineal y Regresión Logística**
+### **B.1. Regresión Lineal y Regresión Logística**
 
 - **Problema que resuelve**:  
   - Regresión lineal → Regresión  
@@ -49,7 +49,7 @@ Antes de elegir un modelo, es clave identificar el **tipo de problema**:
 
 ---
 
-### **2.2. Árboles de Decisión y Bosques Aleatorios (Random Forest)**
+### **B.2. Árboles de Decisión y Bosques Aleatorios (Random Forest)**
 
 - **Problema que resuelve**: Clasificación o regresión  
 - **Ventaja**: Interpretación fácil, maneja datos no lineales y faltantes.
@@ -62,7 +62,7 @@ Antes de elegir un modelo, es clave identificar el **tipo de problema**:
 
 ---
 
-### **2.3. Máquinas de Soporte Vectorial (SVM)**
+### **B.3. Máquinas de Soporte Vectorial (SVM)**
 
 - **Problema que resuelve**: Clasificación (principalmente), también regresión (SVR)  
 - **Útil cuando**: Hay pocos datos pero muchas características.
@@ -75,7 +75,7 @@ Antes de elegir un modelo, es clave identificar el **tipo de problema**:
 
 ---
 
-### **2.4. Redes Neuronales (incluyendo LSTM para series temporales)**
+### **B.4. Redes Neuronales (incluyendo LSTM para series temporales)**
 
 - **Problema que resuelve**:  
   - Redes densas → Regresión/clasificación compleja  
@@ -91,7 +91,7 @@ Antes de elegir un modelo, es clave identificar el **tipo de problema**:
 
 ---
 
-### **2.5. Modelos de Detección de Anomalías (Isolation Forest, Autoencoders)**
+### **B.5. Modelos de Detección de Anomalías (Isolation Forest, Autoencoders)**
 
 - **Problema que resuelve**: Detección de comportamientos atípicos  
 - **Estructura de datos**:  
@@ -103,7 +103,7 @@ Antes de elegir un modelo, es clave identificar el **tipo de problema**:
 
 ---
 
-### **2.6. Clustering (K-Means, DBSCAN)**
+### **B.6. Clustering (K-Means, DBSCAN)**
 
 - **Problema que resuelve**: Agrupar zonas o equipos con comportamientos similares  
 - **Estructura de datos**:  
@@ -114,7 +114,7 @@ Antes de elegir un modelo, es clave identificar el **tipo de problema**:
 
 ---
 
-## **3. Comparación General de Modelos**
+## **C. Comparación General de Modelos**
 
 | Modelo | Tipo de problema | Interpretabilidad | Requiere muchos datos | Maneja datos temporales | Ideal para sensores IoT |
 |--------|------------------|-------------------|------------------------|--------------------------|--------------------------|
@@ -128,7 +128,7 @@ Antes de elegir un modelo, es clave identificar el **tipo de problema**:
 
 ---
 
-## **4. Recomendaciones para tu Proyecto de Monitoreo de Represas**
+## **D. Recomendaciones para tu Proyecto de Monitoreo de Represas**
 
 1. **Para mantenimiento predictivo**: Usa **Random Forest** o **XGBoost** (más potente) para predecir fallas en compuertas o sensores.
 2. **Para pronóstico de niveles**: Usa **LSTM** o modelos clásicos como **ARIMA** si los datos son estacionales.
@@ -136,19 +136,6 @@ Antes de elegir un modelo, es clave identificar el **tipo de problema**:
 4. **Para priorizar intervenciones**: Combina **clustering** (zonas similares) + **clasificación** (riesgo de falla).
 
 ---
-
-## **5. Estructura Típica de Datos en Servicios Públicos**
-
-Un dataset bien estructurado podría verse así:
-
-| timestamp | nivel_agua_m | caudal_entrada_m3s | caudal_salida_m3s | presion_turbina_bar | temp_ambiente_C | estado_valvula (0/1) | lluvia_mm | falla_proxima_7d (0/1) |
-|-----------|--------------|--------------------|-------------------|----------------------|------------------|------------------------|-----------|----------------------------|
-
-- **Variables de entrada (features)**: todas menos la última  
-- **Variable objetivo (target)**: `falla_proxima_7d` (para clasificación) o `nivel_agua_m` (para regresión)
-
----
-
 
 Elegir el modelo adecuado depende del **tipo de problema**, la **calidad y cantidad de datos**, y la necesidad de **interpretabilidad**. En servicios públicos, donde la seguridad y la transparencia son críticas, modelos como **árboles de decisión** o **regresión logística** suelen ser buenos puntos de partida. 
 
