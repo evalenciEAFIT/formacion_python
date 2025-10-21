@@ -8,6 +8,23 @@ Las represas son infraestructuras críticas donde las fallas no anticipadas pued
 
 ## 2. 🤖 ¿Por qué Random Forest es la mejor opción?
 
+### Random Forest
+- **¿Qué es?** Un conjunto de árboles de decisión entrenados con datos y variables aleatorias.
+- **¿Por qué usarlo?**  
+  - Maneja bien datos desbalanceados (pocas fallas).  
+  - No requiere normalización.  
+  - Proporciona **importancia de variables** → interpretable.  
+- **¿Cómo funciona?** Cada árbol vota; la mayoría decide.
+
+### Métricas clave
+| Métrica | Fórmula | ¿Por qué importa en represas? |
+|--------|--------|-------------------------------|
+| **Precisión** | VP / (VP + FP) | Reduce falsas alarmas (evita paradas innecesarias) |
+| **Recall** | VP / (VP + FN) | **Prioridad**: detectar la mayor cantidad de fallas reales |
+| **F1-Score** | 2·(Prec·Rec)/(Prec+Rec) | Equilibrio cuando hay desbalance |
+
+> En mantenimiento predictivo: **maximizar recall**, aunque aumente ligeramente las falsas alarmas.
+
 ### Comparación con otros modelos:
 
 | Criterio | **Random Forest** | Regresión Logística | Redes Neuronales |
