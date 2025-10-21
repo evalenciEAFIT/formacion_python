@@ -1,16 +1,3 @@
-Perfecto, Edi. A continuación, te presento un **documento paso a paso completo** para abordar un proyecto de **mantenimiento preventivo predictivo en una represa usando Machine Learning**, con:
-
-- Planteamiento del problema  
-- Preguntas que resuelve el ML  
-- Comprensión y preparación de los datos  
-- Modelos adecuados y su interpretación  
-- Estructura de proyecto bien organizada  
-- Código modular, comentado y con buenas prácticas  
-- Generador de datos sintéticos  
-- Dashboard interactivo básico  
-
----
-
 # 📘 Guía Paso a Paso: Mantenimiento Predictivo de una Represa con Machine Learning
 
 ---
