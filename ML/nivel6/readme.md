@@ -484,10 +484,12 @@ import joblib
 import sqlite3
 import datetime
 from sqlalchemy import create_engine
+import os
 
 # --- Configuración ---
-RUTA_DB = 'data/hidro.db'
-RUTA_MODELO = 'models/modelo_prediccion_nivel.pkl'
+RUTA_DATA = 'data'
+RUTA_DB = os.path.join(RUTA_DATA, 'hidro.db')
+RUTA_MODELO = os.path.join('models', 'modelo_prediccion_nivel.pkl')
 DIAS_A_PREDECIR = [7, 15, 30] # Días en el futuro
 CENTRALES = ['Guatape', 'Ituango', 'Playas', 'SanCarlos']
 
@@ -504,6 +506,7 @@ def cargar_ultimos_datos_y_modelo():
     
     conn = sqlite3.connect(RUTA_DB)
     # Necesitamos al menos 7 días de datos para el 'nivel_lag_7'
+    # Cargamos 10 por seguridad.
     fecha_limite = (datetime.datetime.now() - datetime.timedelta(days=10)).strftime('%Y-%m-%d')
     query = f"SELECT * FROM Mediciones WHERE fecha_hora >= '{fecha_limite}'"
     df_ultimos = pd.read_sql(query, conn, parse_dates=['fecha_hora'])
@@ -549,6 +552,7 @@ def generar_predicciones(modelo, df_historico):
         lookback_data = df_central.set_index('fecha_hora').to_dict('index')
 
         # Convertimos las fechas del índice a objetos datetime.date puros para la búsqueda
+        # Esto fue clave para arreglar el KeyError anterior
         lookback_dates = {k.date(): v for k, v in lookback_data.items()}
 
         for i in range(1, max(DIAS_A_PREDECIR) + 1):
@@ -563,9 +567,13 @@ def generar_predicciones(modelo, df_historico):
             nivel_lag_7 = lookback_dates[fecha_lag_7]['nivel_msnm']
             caudal_lag_1 = lookback_dates[fecha_lag_1].get('caudal_entrada_m3s', caudal_simulado_futuro)
             
+            # --- ### INICIO DE LA CORRECCIÓN ### ---
             # Features de fecha
-            dia_del_ano = fecha_futura.dayofyear
+            # Los objetos datetime.datetime no tienen .dayofyear
+            # Se debe usar .timetuple().tm_yday
+            dia_del_ano = fecha_futura.timetuple().tm_yday
             mes = fecha_futura.month
+            # --- ### FIN DE LA CORRECCIÓN ### ---
             
             # Features de la central (One-Hot)
             central_Guatape = 1 if central == 'Guatape' else 0
@@ -604,7 +612,9 @@ def guardar_predicciones(df_predicciones):
     Guarda las predicciones generadas en la base de datos.
     """
     print("Guardando predicciones en la base de datos...")
-    engine = create_engine(f'sqlite:///{RUTA_DB}')
+    # Aseguramos que la ruta de la BD sea correcta
+    db_path = os.path.join(RUTA_DATA, 'hidro.db')
+    engine = create_engine(f'sqlite:///{db_path}')
     
     # Sobrescribimos la tabla de predicciones cada vez que corre
     df_predicciones.to_sql('Predicciones', engine, if_exists='replace', index=False)
