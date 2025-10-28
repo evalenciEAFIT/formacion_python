@@ -2,6 +2,16 @@
 
 Este documento contiene la implementación técnica completa, paso a paso, para el proyecto de ejemplo de las hidroeléctricas.
 
+[Nivel 0: Buenas prácticas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel0) | 
+[Nivel 1: Uso de datos en SQL](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel1) |
+[Nivel 2: Uso Pandas](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel2) |
+[Nivel 3: Uso Dash](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/Nivel3) | 
+[Nivel 4: Ejemplo Proyecto](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel4) | 
+[Nivel 5: Ejemplo Proyecto](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel5) | 
+[Nivel 6: Guía: Proyecto de Visualización y Prediccióno](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel6)
+
+---
+
 ### Sección 0: Configuración del Entorno de Desarrollo
 
 Antes de escribir código, es crucial crear un entorno aislado para tu proyecto. Esto asegura que las librerías que instales no entren en conflicto con otros proyectos.
