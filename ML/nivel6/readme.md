@@ -58,11 +58,12 @@ El archivo `requirements.txt` es una lista de todas las librerías que tu proyec
       * `SQLAlchemy`: Para que pandas pueda escribir en bases de datos SQL (usaremos SQLite).
       * `WeasyPrint` y `kaleido`: Para generar el reporte PDF y exportar gráficos de Plotly a imágenes.
       * `dash-leaflet`: Para generar los mapas https://leafletjs.com
+      * `xhtml2pdf` : Alternativa a WeasyPrint
 
     <!-- end list -->
 
     ```bash
-    pip install pandas numpy scikit-learn joblib dash plotly openpyxl SQLAlchemy WeasyPrint kaleido dash-leaflet
+    pip install pandas numpy scikit-learn joblib dash plotly openpyxl SQLAlchemy WeasyPrint kaleido dash-leaflet xhtml2pdf
     ```
 
 2.  Una vez instaladas, genera el archivo `requirements.txt` automáticamente. Este comando "congela" la lista de paquetes instalados en el entorno y la guarda en un archivo:
@@ -1088,112 +1089,116 @@ Este script genera los gráficos estáticos y los ensambla en un PDF.
 
 ```python
 """
-Módulo de Generación de Reportes PDF.
+Módulo de Generación de Reportes (HTML y PDF).
 
-Este script es responsable de:
-1. Cargar los datos más recientes (históricos y predicciones).
-2. Generar gráficos estáticos (imágenes) usando Plotly y Kaleido.
-3. Crear un documento HTML con los gráficos y KPIs.
-4. Convertir el HTML a PDF usando WeasyPrint.
+--- VERSIÓN CON ACTUALIZACIÓN DE DATOS ---
+- Se añaden los comandos 'os.system' para refrescar los datos
+  (data_ingestion, model_training, model_prediction)
+  antes de que el reporte se genere.
 """
 
 import pandas as pd
 import sqlite3
 import plotly.graph_objects as go
 import plotly.io as pio
-from weasyprint import HTML
 import datetime
 import os
+import traceback # Para imprimir errores detallados
 
-# Configuración
-RUTA_DB = 'data/hidro.db'
+try:
+    from xhtml2pdf import pisa
+    XHTML2PDF_DISPONIBLE = True
+except ImportError:
+    print("************************************************************")
+    print("ALERTA: No se pudo importar 'xhtml2pdf'.")
+    print("Por favor, instálala con: pip install xhtml2pdf")
+    print("La generación de PDF estará deshabilitada.")
+    print("************************************************************")
+    XHTML2PDF_DISPONIBLE = False
+
+# --- Configuración (Sin cambios) ---
+RUTA_DB = os.path.join('data', 'hidro.db')
 RUTA_REPORTES = 'reportes'
-RUTA_IMAGENES = 'reportes/img'
+RUTA_IMAGENES = os.path.join(RUTA_REPORTES, 'img')
 FECHA_HOY = datetime.datetime.now().strftime('%Y-%m-%d')
-NOMBRE_REPORTE = f'Reporte_Hidro_EPM_{FECHA_HOY}.pdf'
+NOMBRE_REPORTE_HTML = f'Reporte_Hidro_EPM_{FECHA_HOY}.html'
+NOMBRE_REPORTE_PDF = f'Reporte_Hidro_EPM_{FECHA_HOY}.pdf'
 
-# Asegurarse que las carpetas de reportes existen
 os.makedirs(RUTA_REPORTES, exist_ok=True)
 os.makedirs(RUTA_IMAGENES, exist_ok=True)
 
+
 def cargar_datos_reporte():
-    """Carga todos los datos necesarios para el reporte."""
-    conn = sqlite3.connect(f'file:{RUTA_DB}?mode=ro', uri=True)
+    """Carga los datos de la BD (igual que el dashboard)."""
+    print("Cargando datos frescos de la Base de Datos...")
+    db_path = os.path.join('data', 'hidro.db')
+    conn = sqlite3.connect(f'file:{db_path}?mode=ro', uri=True)
     df_centrales = pd.read_sql("SELECT * FROM Centrales", conn)
     
-    # Histórico de los últimos 30 días
     fecha_limite = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')
-    query_hist = f"SELECT * FROM Mediciones WHERE fecha_hora >= '{fecha_limite}'"
+    query_hist = f"SELECT * FROM Mediciones WHERE date(fecha_hora) >= '{fecha_limite}'"
     df_historico = pd.read_sql(query_hist, conn, parse_dates=['fecha_hora'])
     
     df_predicciones = pd.read_sql("SELECT * FROM Predicciones", conn, parse_dates=['fecha_prediccion'])
     conn.close()
     
-    # Combinar datos
+    print(f"Cargados {len(df_historico)} registros históricos.")
+    
     df_historico = pd.merge(df_historico, df_centrales, on='id_central')
     df_historico['nivel_pct'] = (df_historico['nivel_msnm'] / df_historico['nivel_max_msnm']) * 100
     
-    # Estado más reciente
-    df_estado_actual = df_historico.loc[df_historico.groupby('id_central')['fecha_hora'].idxmax()]
+    df_estado_actual = pd.DataFrame()
+    if not df_historico.empty:
+        df_estado_actual = df_historico.loc[df_historico.groupby('id_central')['fecha_hora'].idxmax()]
     
     return df_centrales, df_historico, df_predicciones, df_estado_actual
 
 def generar_grafico_estatico(central, df_hist, df_pred, df_centrales):
-    """
-    Genera un gráfico de serie de tiempo para una central y lo guarda como PNG.
-    
-    Retorna:
-        str: La ruta al archivo de imagen generado.
-    """
+    """Genera un gráfico PNG estático."""
     print(f"Generando gráfico para {central}...")
     df_h = df_hist[df_hist['id_central'] == central]
     df_p = df_pred[df_pred['id_central'] == central]
+    
+    if df_centrales[df_centrales['id_central'] == central].empty:
+        return None
+        
     info = df_centrales[df_centrales['id_central'] == central].iloc[0]
     
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=df_h['fecha_hora'], y=df_h['nivel_msnm'], mode='lines', name='Histórico'))
     fig.add_trace(go.Scatter(x=df_p['fecha_prediccion'], y=df_p['nivel_predicho_msnm'], mode='markers', name='Predicción', marker=dict(color='red', size=8)))
-    
-    # Líneas de umbral
     fig.add_hline(y=info['nivel_max_msnm'], line_dash="dot", line_color="green")
     fig.add_hline(y=info['nivel_max_msnm'] * 0.4, line_dash="dot", line_color="red")
+    fig.update_layout(title=f"Evolución Nivel: {central}", xaxis_title="Fecha", yaxis_title="Nivel (msnm)")
     
-    fig.update_layout(
-        title=f"Evolución Nivel: {central}",
-        xaxis_title="Fecha", yaxis_title="Nivel (msnm)",
-        legend_title="Leyenda",
-    )
+    ruta_img = os.path.join(RUTA_IMAGENES, f"grafico_{central}.png")
     
-    # Guardar la imagen
-    ruta_img = f"{RUTA_IMAGENES}/grafico_{central}.png"
-    pio.write_image(fig, ruta_img, engine='kaleido', scale=2) # scale=2 para mejor resolución
+    pio.write_image(fig, ruta_img, scale=2) 
+    
     return ruta_img
 
 def crear_html_reporte(df_estado_actual, rutas_graficos):
-    """
-    Crea una cadena de string HTML que sirve como plantilla para el PDF.
-    """
+    """Crea el string HTML con rutas relativas."""
     print("Generando plantilla HTML...")
     
-    # --- Inicio del HTML ---
     html_str = f"""
     <html>
     <head>
         <style>
-            body {{ font-family: Arial, sans-serif; margin: 20px; }}
-            h1 {{ color: #004a99; }} /* Color EPM */
-            h2 {{ color: #333; border-bottom: 2px solid #004a99; padding-bottom: 5px; }}
-            table {{ width: 100%; border-collapse: collapse; margin-bottom: 20px; }}
-            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+            @page {{ size: a4 portrait; @frame content_frame {{ left: 50pt; right: 50pt; top: 50pt; bottom: 50pt; }} }}
+            body {{ font-family: Arial, sans-serif; margin: 0; }}
+            h1 {{ color: #004a99; font-size: 24pt; }}
+            h2 {{ color: #333; border-bottom: 2px solid #004a99; padding-bottom: 5px; font-size: 18pt; }}
+            table {{ width: 100%; border-collapse: collapse; margin: 20px 0; }}
+            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 10pt; }}
             th {{ background-color: #f2f2f2; }}
-            .grafico-container {{ 
-                page-break-inside: avoid; /* Evita que el gráfico se corte entre páginas */
-                margin-top: 20px; 
-            }}
-            img {{ width: 100%; }}
+            .container {{ padding: 10px; }}
+            .grafico-container {{ margin-top: 20px; text-align: center; }}
+            img {{ max-width: 90%; height: auto; }}
         </style>
     </head>
     <body>
+    <div class="container">
         <h1>Reporte de Estado y Proyección de Centrales Hidroeléctricas</h1>
         <p>Fecha del reporte: {FECHA_HOY}</p>
         
@@ -1207,57 +1212,119 @@ def crear_html_reporte(df_estado_actual, rutas_graficos):
             </tr>
     """
     
-    # --- Tabla de Resumen ---
-    for _, row in df_estado_actual.iterrows():
-        color_pct = "green" if row['nivel_pct'] > 70 else ("orange" if row['nivel_pct'] > 40 else "red")
-        html_str += f"""
-            <tr>
-                <td>{row['id_central']}</td>
-                <td>{row['nivel_msnm']:.2f}</td>
-                <td>{row['nivel_max_msnm']}</td>
-                <td style="color: {color_pct}; font-weight: bold;">{row['nivel_pct']:.1f}%</td>
-            </tr>
-        """
+    if df_estado_actual.empty:
+         # Esta fila se añadirá si los datos históricos están vacíos
+         html_str += '<tr><td colspan="4">No hay datos actuales disponibles.</td></tr>'
+    else:
+        # Si df_estado_actual SÍ tiene datos, se llenará la tabla
+        for _, row in df_estado_actual.iterrows():
+            color_pct = "green" if row['nivel_pct'] > 70 else ("orange" if row['nivel_pct'] > 40 else "red")
+            html_str += f"""
+                <tr>
+                    <td>{row['id_central']}</td>
+                    <td>{row['nivel_msnm']:.2f}</td>
+                    <td>{row['nivel_max_msnm']}</td>
+                    <td style="color: {color_pct}; font-weight: bold;">{row['nivel_pct']:.1f}%</td>
+                </tr>
+            """
     
     html_str += "</table>"
-    
-    # --- Sección de Gráficos ---
     html_str += "<h2>Detalle y Proyección por Central</h2>"
     
     for central, ruta_img in rutas_graficos.items():
-        # Usamos la ruta relativa para el HTML
-        ruta_img_rel = os.path.relpath(ruta_img, RUTA_REPORTES) 
-        html_str += f"""
-        <div class="grafico-container">
-            <img src="{ruta_img}">
-        </div>
-        """
+        if ruta_img:
+            ruta_img_rel = os.path.relpath(ruta_img, RUTA_REPORTES)
+            ruta_img_rel = ruta_img_rel.replace(os.path.sep, '/')
+            html_str += f"""
+            <div class="grafico-container">
+                <img src="{ruta_img_rel}" alt="Gráfico de {central}">
+            </div>
+            """
     
-    html_str += "</body></html>"
+    html_str += "</div></body></html>"
     return html_str
 
-# --- Punto de Entrada Principal ---
+def convertir_html_a_pdf(source_html, output_filename, base_dir='.'):
+    """Convierte el HTML a PDF usando xhtml2pdf."""
+    with open(output_filename, "w+b") as result_file:
+        pisa_status = pisa.CreatePDF(
+            source_html,
+            dest=result_file,
+            path=base_dir
+        )
+    return pisa_status.err
+
+
+# --- Punto de Entrada Principal (MODIFICADO) ---
 if __name__ == "__main__":
-    print(f"Iniciando generación de reporte PDF: {NOMBRE_REPORTE}")
+
+    # --- ### INICIO DE LA CORRECCIÓN ### ---
+    #
+    # Añadimos los mismos comandos de actualización de datos
+    # que tiene el script 'dashboard/app.py'.
+    # Esto asegura que la base de datos esté FRESCA cada vez
+    # que se genera el reporte.
+    #
+    script_ingestion = os.path.join("src", "data_ingestion.py")
+    script_training = os.path.join("src", "model_training.py")
+    script_prediction = os.path.join("src", "model_prediction.py")
     
-    # 1. Cargar datos
+    print("Asegurando que los datos y modelos están actualizados...")
+    
+    print(f"Ejecutando {script_ingestion}...")
+    os.system(f'python {script_ingestion}')
+    
+    print(f"Ejecutando {script_training}...")
+    os.system(f'python {script_training}')
+    
+    print(f"Ejecutando {script_prediction}...")
+    os.system(f'python {script_prediction}')
+    #
+    # --- ### FIN DE LA CORRECCIÓN ### ---
+
+    print(f"\nIniciando generación de reportes...")
+    
+    # --- PASO 1: Cargar datos (AHORA FRESCOS) ---
     df_c, df_h, df_p, df_actual = cargar_datos_reporte()
     
-    # 2. Generar gráficos
+    # --- PASO 2: Generar gráficos (Archivos .png) ---
     rutas_graficos = {}
-    for central in df_c['id_central']:
-        rutas_graficos[central] = generar_grafico_estatico(central, df_h, df_p, df_c)
+    if not df_c.empty:
+        for central in df_c['id_central']:
+            rutas_graficos[central] = generar_grafico_estatico(central, df_h, df_p, df_c)
     
-    # 3. Crear HTML
+    # --- PASO 3: Generar el string HTML ---
+    # (Ahora df_actual no estará vacío, y la tabla tendrá datos)
     html_content = crear_html_reporte(df_actual, rutas_graficos)
     
-    # 4. Convertir HTML a PDF
-    ruta_pdf = os.path.join(RUTA_REPORTES, NOMBRE_REPORTE)
-    # WeasyPrint necesita una URL base para encontrar las imágenes
-    base_url = os.path.dirname(os.path.abspath(__file__))
-    HTML(string=html_content, base_url=base_url).write_pdf(ruta_pdf)
-    
-    print(f"\nReporte PDF generado exitosamente en: {ruta_pdf}")
+    # --- PASO 4: Guardar el archivo HTML ---
+    ruta_html = os.path.join(RUTA_REPORTES, NOMBRE_REPORTE_HTML)
+    try:
+        with open(ruta_html, "w", encoding="utf-8") as f:
+            f.write(html_content)
+        print(f"\nReporte HTML generado exitosamente en: {ruta_html}")
+    except Exception as e:
+        print(f"Error al guardar el archivo HTML: {e}")
+
+    # --- PASO 5: Generar el archivo PDF ---
+    if XHTML2PDF_DISPONIBLE:
+        print("Iniciando generación de PDF con xhtml2pdf...")
+        ruta_pdf = os.path.join(RUTA_REPORTES, NOMBRE_REPORTE_PDF)
+        
+        try:
+            base_dir_abs = os.path.abspath(RUTA_REPORTES)
+            pisa_error = convertir_html_a_pdf(html_content, ruta_pdf, base_dir=base_dir_abs)
+            
+            if not pisa_error:
+                print(f"Reporte PDF generado exitosamente en: {ruta_pdf}")
+            else:
+                # Ya no deberías ver '<table> is empty'
+                print(f"ERROR: Falló la generación de PDF con xhtml2pdf: {pisa_error}")
+        except Exception as e:
+            print(f"ERROR FATAL durante la generación de PDF: {e}")
+            traceback.print_exc()
+    else:
+        print("\nGeneración de PDF omitida (xhtml2pdf no está disponible).")
 ```
 
 **Para ejecutar este script:**
@@ -1316,22 +1383,21 @@ Este proyecto es un prototipo para visualizar el estado actual y futuro (7, 15, 
 ```
 
 /proyecto\_hidro\_epm/
-|
-├── 📁 data/               \# Datos generados (CSV, Excel, SQLite DB)
-├── 📁 dashboard/          \# Código de la aplicación Dash
-|   └── 📄 app.py
-├── 📁 models/             \# Modelos de ML entrenados (.pkl)
-├── 📁 notebooks/          \# Jupyter notebooks para exploración
-├── 📁 reportes/           \# PDFs e imágenes generadas
-├── 📁 src/                \# Código fuente principal
-|   ├── 📄 data\_ingestion.py    \# Simula y guarda datos
-|   ├── 📄 model\_training.py    \# Entrena el modelo de ML
-|   ├── 📄 model\_prediction.py   \# Genera predicciones futuras
-|   └── 📄 report\_generator.py   \# Crea el reporte PDF
-|
-├── 📄 .gitignore          \# Archivos a ignorar por Git
-├── 📄 requirements.txt    \# Librerías de Python
-└── 📄 README.md           \# Esta documentación
+|  
+├── 📁 data/               \# Datos generados (CSV, Excel, SQLite DB)  
+├── 📁 dashboard/          \# Código de la aplicación Dash  
+|   └── 📄 app.py  
+├── 📁 models/             \# Modelos de ML entrenados (.pkl)  
+├── 📁 reportes/           \# PDFs e imágenes generadas  
+├── 📁 src/                \# Código fuente principal  
+|   ├── 📄 data\_ingestion.py    \# Simula y guarda datos  
+|   ├── 📄 model\_training.py    \# Entrena el modelo de ML  
+|   ├── 📄 model\_prediction.py   \# Genera predicciones futuras  
+|   └── 📄 report\_generator.py   \# Crea el reporte PDF  
+|  
+├── 📄 .gitignore          \# Archivos a ignorar por Git  
+├── 📄 requirements.txt    \# Librerías de Python  
+└── 📄 README.md           \# Esta documentación  
 
 ````
 
