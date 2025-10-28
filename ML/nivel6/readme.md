@@ -1378,5 +1378,3 @@ python src/report_generator.py
 
 El archivo se guardará en la carpeta `/reportes`.
 
-```
-```
