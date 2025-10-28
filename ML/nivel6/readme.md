@@ -135,8 +135,9 @@ Módulo de Ingesta y Simulación de Datos.
 
 Este script es responsable de:
 1. Simular datos históricos y operativos de las centrales hidroeléctricas.
+   La simulación genera 3 años de datos que terminan en la fecha actual.
 2. Guardar estos datos en múltiples formatos (CSV, Excel, SQLite DB).
-3. Configurar la base de datos inicial.
+3. Configurar la base de datos inicial, creando tablas para 'Centrales' y 'Mediciones'.
 """
 
 import pandas as pd
@@ -144,10 +145,12 @@ import numpy as np
 import datetime
 import sqlite3
 from sqlalchemy import create_engine
+import os
 
-# --- Configuración de la Simulación ---
+# --- 1. Configuración de la Simulación ---
 
 # Define las centrales y sus atributos (coordenadas, capacidad, etc.)
+# Estos datos son estáticos y definen las entidades que estamos midiendo.
 CENTRALES = {
     'Guatape': {'lat': 6.32, 'lon': -75.16, 'capacidad_MWh': 560, 'nivel_max_msnm': 1900},
     'Ituango': {'lat': 7.15, 'lon': -75.63, 'capacidad_MWh': 2400, 'nivel_max_msnm': 401},
@@ -155,14 +158,35 @@ CENTRALES = {
     'SanCarlos': {'lat': 6.19, 'lon': -74.98, 'capacidad_MWh': 1240, 'nivel_max_msnm': 805}
 }
 
-N_DIAS_HISTORICOS = 1095 # Simular 3 años de datos
-FECHA_INICIO = datetime.datetime(2022, 1, 1)
+# --- MEJORA: Configuración de Fecha Dinámica ---
+# Esto es crucial para que el modelo de predicción funcione.
+# El modelo necesita datos de "hoy" para predecir "mañana".
+# Al generar datos hasta hoy, nos aseguramos de que no falten datos recientes.
 
-# --- Rutas de Archivos de Salida ---
+# Obtenemos la fecha actual y la limpiamos (sin hora, minuto, etc.)
+FECHA_HOY = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+# Calculamos la fecha de inicio para tener 3 años de historial.
+FECHA_INICIO = FECHA_HOY - datetime.timedelta(days=(3 * 365)) # 3 años de historia
+
+# Calculamos el número total de días a simular, incluyendo hoy.
+N_DIAS_HISTORICOS = (FECHA_HOY - FECHA_INICIO).days + 1
+# --- Fin de la Mejora ---
+
+
+# --- 2. Rutas de Archivos de Salida ---
+
+# Definimos una carpeta 'data' para mantener el proyecto organizado.
 RUTA_DATA = 'data'
-RUTA_CSV = f'{RUTA_DATA}/mediciones_hidro.csv'
-RUTA_EXCEL = f'{RUTA_DATA}/mediciones_hidro.xlsx'
-RUTA_DB = f'sqlite:///{RUTA_DATA}/hidro.db' # Ruta para SQLAlchemy
+RUTA_CSV = os.path.join(RUTA_DATA, 'mediciones_hidro.csv')
+RUTA_EXCEL = os.path.join(RUTA_DATA, 'mediciones_hidro.xlsx')
+# Usamos SQLite para una base de datos simple basada en archivos.
+# 'sqlite:///' es el prefijo que SQLAlchemy usa para archivos locales.
+RUTA_DB_ENGINE = f'sqlite:///{os.path.join(RUTA_DATA, "hidro.db")}'
+RUTA_DB_FILE = os.path.join(RUTA_DATA, "hidro.db") # Ruta para conexión directa
+
+# Asegurarse de que la carpeta 'data' exista
+os.makedirs(RUTA_DATA, exist_ok=True)
 
 
 def simular_datos():
@@ -175,36 +199,46 @@ def simular_datos():
     Retorna:
         pd.DataFrame: Un DataFrame con todos los datos históricos simulados.
     """
-    print("Iniciando simulación de datos...")
+    print(f"Iniciando simulación de datos desde {FECHA_INICIO.date()} hasta {FECHA_HOY.date()}...")
     datos_simulados = []
     
+    # Iteramos por cada central definida en el diccionario
     for central, info in CENTRALES.items():
+        
+        # Iteramos por cada día en nuestro rango de simulación
         for i in range(N_DIAS_HISTORICOS):
             fecha = FECHA_INICIO + datetime.timedelta(days=i)
             
-            # Simular estacionalidad (ej. temporada de lluvias)
+            # --- Simulación de Variables ---
+            # 1. Estacionalidad: Creamos un ciclo anual (senoide) para simular
+            #    temporadas de lluvia (valores altos) y sequía (valores bajos).
+            #    (i / 365.25) * 2 * np.pi -> convierte el día en una posición del círculo (radianes)
             estacionalidad = np.sin((i / 365.25) * 2 * np.pi - np.pi / 2) # Senoide anual
             
-            # Simular nivel (msnm)
-            nivel_base = info['nivel_max_msnm'] * 0.75 # Nivel promedio
-            ruido = np.random.rand() * 0.1 - 0.05 # Ruido aleatorio
+            # 2. Nivel (msnm): Es la variable clave.
+            nivel_base = info['nivel_max_msnm'] * 0.75 # Asumimos un nivel promedio del 75%
+            ruido = np.random.rand() * 0.1 - 0.05 # Pequeña variación aleatoria diaria
+            # El nivel final es el promedio + estacionalidad + ruido
             nivel_actual = nivel_base * (1 + 0.2 * estacionalidad + ruido)
             
-            # Simular caudal (m3/s)
+            # 3. Caudal (m3/s): Relacionado con la estacionalidad (lluvia).
             caudal_entrada = 150 + 100 * estacionalidad + np.random.uniform(-20, 20)
             
-            # Simular generación (MW)
+            # 4. Generación (MW): Depende de la capacidad de la central y del nivel del agua.
+            #    Un nivel más alto significa más presión/potencial de generación.
             factor_gen = (nivel_actual / info['nivel_max_msnm']) * np.random.uniform(0.7, 1.0)
             generacion_mw = info['capacidad_MWh'] * factor_gen
             
+            # Agregamos los datos de este día a nuestra lista
             datos_simulados.append({
                 'id_central': central,
                 'fecha_hora': fecha,
                 'nivel_msnm': round(nivel_actual, 2),
-                'caudal_entrada_m3s': round(caudal_entrada, 2),
-                'generacion_mw': round(generacion_mw, 2),
+                'caudal_entrada_m3s': round(max(0, caudal_entrada), 2), # Asegurar que no sea negativo
+                'generacion_mw': round(max(0, generacion_mw), 2), # Asegurar que no sea negativo
             })
 
+    # Convertimos la lista de diccionarios en un DataFrame de Pandas
     df = pd.DataFrame(datos_simulados)
     print(f"Simulación completada. Generados {len(df)} registros.")
     return df
@@ -217,43 +251,61 @@ def guardar_datos(df_mediciones):
     Args:
         df_mediciones (pd.DataFrame): DataFrame con las mediciones simuladas.
     """
-    print(f"Guardando datos en {RUTA_CSV}, {RUTA_EXCEL}, y {RUTA_DB}...")
+    print(f"Guardando datos en {RUTA_CSV}, {RUTA_EXCEL}, y {RUTA_DB_FILE}...")
     
     # 1. Guardar en CSV
     df_mediciones.to_csv(RUTA_CSV, index=False)
     
-    # 2. Guardar en Excel
-    # df_mediciones.to_excel(RUTA_EXCEL, index=False) # Descomentar si se necesita. Es más lento.
+    # 2. Guardar en Excel (Opcional, puede ser lento para muchos datos)
+    df_mediciones.to_excel(RUTA_EXCEL, index=False) 
 
     # 3. Guardar en Base de Datos SQLite
-    engine = create_engine(RUTA_DB)
+    # SQLAlchemy provee una forma estándar de interactuar con bases de datos SQL.
+    engine = create_engine(RUTA_DB_ENGINE)
     
-    # Crear y guardar la tabla de Centrales
+    # --- Crear y guardar la tabla de Centrales ---
+    # Convertimos el diccionario CENTRALES en un DataFrame
     df_centrales = pd.DataFrame.from_dict(CENTRALES, orient='index')
+    # El índice (nombre de la central) se convierte en la columna 'id_central'
     df_centrales.index.name = 'id_central'
+    # Guardamos este DataFrame en la BD en la tabla 'Centrales'.
+    # if_exists='replace' borra la tabla si ya existe y la crea de nuevo.
     df_centrales.to_sql('Centrales', engine, if_exists='replace')
     
-    # Guardar la tabla de Mediciones
+    # --- Guardar la tabla de Mediciones ---
+    # Guardamos las mediciones simuladas en la tabla 'Mediciones'.
+    # 'index_label' define el nombre de la columna de clave primaria en la BD.
     df_mediciones.to_sql('Mediciones', engine, if_exists='replace', index_label='id_medicion')
     
-    print("Datos guardados exitosamente en todos los formatos.")
+    print("Datos guardados exitosamente en la base de datos.")
     
-    # Verificación (opcional)
-    with engine.connect() as conn:
-        print("\nVerificación de BD (Tabla Centrales):")
+    # --- Verificación (Opcional pero recomendado) ---
+    # Nos conectamos directamente para hacer una consulta SQL y verificar.
+    try:
+        conn = sqlite3.connect(RUTA_DB_FILE)
+        print("\n--- Verificación de Base de Datos ---")
+        print("Tabla 'Centrales' (primeras 3 filas):")
         print(pd.read_sql("SELECT * FROM Centrales LIMIT 3", conn))
-        print("\nVerificación de BD (Tabla Mediciones):")
-        print(pd.read_sql("SELECT * FROM Mediciones LIMIT 3", conn))
+        print("\nTabla 'Mediciones' (últimas 3 filas):")
+        # Mostramos las últimas filas para confirmar que los datos llegan hasta hoy
+        print(pd.read_sql(f"SELECT * FROM Mediciones ORDER BY fecha_hora DESC LIMIT 3", conn))
+        conn.close()
+    except Exception as e:
+        print(f"Error durante la verificación de la BD: {e}")
 
 
 # --- Punto de Entrada Principal ---
 if __name__ == "__main__":
     """
     Este bloque se ejecuta solo cuando corres el script directamente
-    (ej. `python src/data_ingestion.py`)
+    (ejecutando: `python src/data_ingestion.py`)
+    No se ejecutará si otro script importa este archivo (ej. `import data_ingestion`).
     """
-    datos = simular_datos()
-    guardar_datos(datos)
+    # Paso 1: Generar los datos en memoria
+    datos_simulados = simular_datos()
+    
+    # Paso 2: Guardar los datos en los archivos de salida
+    guardar_datos(datos_simulados)
 ```
 
 **Para ejecutar este script:**
