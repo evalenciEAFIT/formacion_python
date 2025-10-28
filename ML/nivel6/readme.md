@@ -44,12 +44,6 @@ Deberás activar el entorno cada vez que trabajes en el proyecto.
     ```
     (Tu terminal debería ahora mostrar `(venv)` al inicio de la línea).
 
-   * **En macOS / Linux:**
-
-    ```bash
-    source venv/bin/activate
-    ```
-
 
 #### 3\. Instalación de Paquetes y `requirements.txt`
 
