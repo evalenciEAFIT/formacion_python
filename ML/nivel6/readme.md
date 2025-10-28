@@ -1,7 +1,3 @@
-Aquí tienes la guía completa, incluyendo todo el código, la configuración del entorno y la estructura de archivos.
-
------
-
 ## Guía Completa: Proyecto de Visualización y Predicción
 
 Este documento contiene la implementación técnica completa, paso a paso, para el proyecto de ejemplo de las hidroeléctricas.
