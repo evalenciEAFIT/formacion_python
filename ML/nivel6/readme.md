@@ -57,11 +57,12 @@ El archivo `requirements.txt` es una lista de todas las librerías que tu proyec
       * `openpyxl`: Para que pandas pueda escribir en Excel.
       * `SQLAlchemy`: Para que pandas pueda escribir en bases de datos SQL (usaremos SQLite).
       * `WeasyPrint` y `kaleido`: Para generar el reporte PDF y exportar gráficos de Plotly a imágenes.
+      * `dash-leaflet`: Para generar los mapas https://leafletjs.com
 
     <!-- end list -->
 
     ```bash
-    pip install pandas numpy scikit-learn joblib dash plotly openpyxl SQLAlchemy WeasyPrint kaleido
+    pip install pandas numpy scikit-learn joblib dash plotly openpyxl SQLAlchemy WeasyPrint kaleido dash-leaflet
     ```
 
 2.  Una vez instaladas, genera el archivo `requirements.txt` automáticamente. Este comando "congela" la lista de paquetes instalados en el entorno y la guarda en un archivo:
