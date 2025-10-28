@@ -403,7 +403,8 @@ if __name__ == "__main__":
 python src/model_training.py
 ```
 
-Verás un archivo `modelo_prediccion_nivel.pkl` en tu carpeta `models/`.
+Verás un archivo `modelo_prediccion_nivel.pkl` en tu carpeta `models/`.   
+Más información en: https://github.com/evalenciEAFIT/formacion_python/blob/main/ML/nivel6/pkl.md
 
 -----
 
