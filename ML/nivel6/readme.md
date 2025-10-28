@@ -651,190 +651,422 @@ Este script utiliza `Dash` y `Plotly` para crear la visualización web.
 
 ```python
 """
-Dashboard Interactivo con Dash y Plotly.
+Dashboard Interactivo con Dash y Leaflet.
 
-Este script lanza una aplicación web local que muestra:
-1. Un mapa interactivo de las centrales (GeoDatos).
-2. Un gráfico de series de tiempo con datos históricos y predicciones.
-3. El gráfico se actualiza al hacer clic en el mapa (Callback).
+Este script es el punto central de la aplicación web. Se encarga de:
+1. Cargar los datos (reales y predichos) desde la base de datos.
+2. Definir la estructura visual (Layout) del dashboard usando componentes Dash.
+3. Crear un mapa interactivo con Dash-Leaflet.
+4. Definir la interactividad (Callbacks) para que al hacer clic en el mapa,
+   el gráfico de series de tiempo se actualice.
 """
 
-import dash
-from dash import dcc, html
-from dash.dependencies import Input, Output
-import plotly.express as px
-import plotly.graph_objects as go
-import pandas as pd
-import sqlite3
-import datetime
+# --- 1. IMPORTACIÓN DE LIBRERÍAS ---
 
-# --- Carga de Datos ---
-RUTA_DB = 'data/hidro.db'
+import dash
+# Componentes principales de Dash: dcc (componentes de control como gráficos, sliders)
+# y html (componentes HTML como Div, H1, etc.)
+from dash import dcc, html
+# Dependencias para los Callbacks (Input, Output) y el patrón 'ALL'
+from dash.dependencies import Input, Output, ALL
+import plotly.graph_objects as go # Para crear las figuras (gráficos de líneas)
+import pandas as pd # Para la manipulación y análisis de datos (DataFrames)
+import sqlite3 # Para conectarnos a la base de datos SQLite
+import datetime # Para manejar objetos de fecha y hora
+import numpy as np # Para crear arrays (usado en una versión anterior, pero se mantiene por si acaso)
+import os # Para construir rutas de archivos (ej. os.path.join) que funcionen en cualquier S.O.
+import json # Para procesar la información del callback de Leaflet
+
+# Importamos la biblioteca Dash-Leaflet para el mapa
+import dash_leaflet as dl 
+
+
+# --- 2. CONFIGURACIÓN Y CARGA DE DATOS ---
+
+# Definimos la ruta a la carpeta de datos
+RUTA_DATA = 'data'
+# Construimos la ruta al archivo de la base de datos de forma segura
+RUTA_DB = os.path.join(RUTA_DATA, 'hidro.db')
 
 def cargar_datos_dashboard():
     """
     Carga todos los datos necesarios para el dashboard desde la BD.
-    (Centrales, Mediciones históricas y Predicciones futuras).
-    """
-    conn = sqlite3.connect(f'file:{RUTA_DB}?mode=ro', uri=True) # Modo solo lectura
     
-    # 1. Cargar Centrales (para el mapa)
+    PARA QUÉ: Centralizar toda la lógica de lectura de datos en una sola función.
+    POR QUÉ: Mantiene el código limpio y permite recargar datos fácilmente si fuera necesario.
+    """
+    
+    # Nos conectamos a la BD en modo 'read-only' (ro).
+    # POR QUÉ: Es una buena práctica de seguridad para un dashboard,
+    # asegura que esta aplicación no pueda modificar los datos.
+    conn = sqlite3.connect(f'file:{RUTA_DB}?mode=ro', uri=True) 
+    
+    # Leemos la tabla de centrales (info estática: lat, lon, capacidad)
     df_centrales = pd.read_sql("SELECT * FROM Centrales", conn)
     
-    # 2. Cargar últimos 90 días de mediciones históricas
+    # Calculamos la fecha de hoy menos 90 días para limitar la carga de datos
     fecha_limite = (datetime.datetime.now() - datetime.timedelta(days=90)).strftime('%Y-%m-%d')
+    # Preparamos la consulta SQL para obtener solo el historial reciente
     query_hist = f"SELECT * FROM Mediciones WHERE fecha_hora >= '{fecha_limite}'"
+    # Leemos los datos históricos, convirtiendo 'fecha_hora' a objeto datetime
     df_historico = pd.read_sql(query_hist, conn, parse_dates=['fecha_hora'])
     
-    # 3. Cargar Predicciones
+    # Leemos la tabla de predicciones
     df_predicciones = pd.read_sql("SELECT * FROM Predicciones", conn, parse_dates=['fecha_prediccion'])
     
+    # Cerramos la conexión a la BD
     conn.close()
     
-    # 4. Combinar info de centrales (ej. nivel_max) con histórico
-    df_historico = pd.merge(df_historico, df_centrales[['id_central', 'nivel_max_msnm']], on='id_central')
-    # Calcular el nivel como porcentaje (para el color del mapa)
-    df_historico['nivel_pct'] = (df_historico['nivel_msnm'] / df_historico['nivel_max_msnm']) * 100
+    # --- Procesamiento de Datos ---
     
-    # Obtener el estado más reciente para el mapa
-    df_mapa = df_historico.loc[df_historico.groupby('id_central')['fecha_hora'].idxmax()]
-    df_mapa = pd.merge(df_mapa, df_centrales[['id_central', 'lat', 'lon']], on='id_central')
+    # Unimos (merge) los datos históricos con los de las centrales.
+    # PARA QUÉ: Para tener el 'nivel_max_msnm' en el mismo DataFrame que el 'nivel_msnm'.
+    # POR QUÉ: Necesitamos ambos valores para calcular el porcentaje.
+    df_historico = pd.merge(df_historico, df_centrales[['id_central', 'nivel_max_msnm']], on='id_central')
+    
+    # Calculamos el nivel como porcentaje.
+    # POR QUÉ: Es una métrica normalizada (0-100) fácil de visualizar y colorear en el mapa.
+    df_historico['nivel_pct'] = (df_historico['nivel_msnm'] / df_historico['nivel_max_msnm']) * 100
+
+    # Creamos el DataFrame para el mapa (df_mapa)
+    if not df_historico.empty:
+        # Obtenemos el registro más reciente de CADA central.
+        # .groupby('id_central')['fecha_hora'].idxmax() encuentra el índice del valor máximo (fecha más reciente) para cada grupo.
+        # .loc[] usa esos índices para seleccionar las filas completas.
+        df_mapa = df_historico.loc[df_historico.groupby('id_central')['fecha_hora'].idxmax()]
+        
+        # Le añadimos la latitud y longitud a estos últimos registros.
+        df_mapa = pd.merge(df_mapa, df_centrales[['id_central', 'lat', 'lon']], on='id_central')
+    else:
+        # Si no hay datos históricos, creamos un DataFrame vacío con las columnas esperadas.
+        # POR QUÉ: Para evitar que la aplicación falle si la BD está vacía.
+        df_mapa = pd.DataFrame(columns=['lat', 'lon', 'nivel_pct', 'id_central', 'nivel_msnm'])
 
     return df_centrales, df_historico, df_predicciones, df_mapa
 
-# Cargar datos al iniciar la app
+# --- 3. PREPARACIÓN INICIAL DE DATOS Y MAPA ---
+
+# Ejecutamos la función de carga UNA VEZ cuando la aplicación se inicia.
 df_centrales, df_historico, df_predicciones, df_mapa = cargar_datos_dashboard()
 
-# --- Inicialización de la App Dash ---
+# --- Funciones auxiliares para el mapa Leaflet ---
+
+def get_color_para_mapa(pct):
+    """
+    Retorna un color (string) basado en el porcentaje de nivel.
+    PARA QUÉ: Para asignar un color de estado (rojo, naranja, verde) a cada marcador.
+    """
+    if pct > 80:
+        return "green"
+    if pct > 50:
+        return "orange"
+    return "red"
+
+def crear_marcadores_mapa(df_mapa):
+    """
+    Crea una lista de componentes dl.CircleMarker a partir del DataFrame df_mapa.
+    PARA QUÉ: Para generar los puntos que se mostrarán en el mapa.
+    """
+    marcadores = []
+    # Iteramos sobre cada fila del DataFrame que contiene el último estado de cada central
+    for _, row in df_mapa.iterrows():
+        color = get_color_para_mapa(row['nivel_pct'])
+        
+        # Creamos un Marcador Circular
+        marker = dl.CircleMarker(
+            center=[row['lat'], row['lon']], # Posición [latitud, longitud]
+            color=color, # Color del borde
+            fill=True, # Rellenar el círculo
+            fillOpacity=0.8, # Opacidad del relleno
+            radius=10, # Tamaño del círculo
+            
+            # --- ID de Diccionario (CLAVE PARA EL CALLBACK) ---
+            # PARA QUÉ: Asignar un ID único y estructurado a cada marcador.
+            # POR QUÉ: Esto permite que nuestro callback use un "patrón"
+            # (type='map-marker') para "escuchar" los clics de TODOS los marcadores,
+            # y luego usar el 'name' para saber CUÁL fue clickeado.
+            id={
+                'type': 'map-marker', # Tipo de componente
+                'name': row['id_central'] # ID único (nombre de la central)
+            },
+            children=[
+                # Tooltip: Texto que aparece al pasar el mouse por encima
+                dl.Tooltip(f"{row['id_central']}: {row['nivel_pct']:.1f}%")
+            ]
+        )
+        marcadores.append(marker)
+    return marcadores
+
+# Creamos la lista de marcadores al iniciar la app.
+marcadores_leaflet = crear_marcadores_mapa(df_mapa)
+
+# --- 4. CONFIGURACIÓN DE CAPAS DE MAPA ---
+
+# URLs de los "Tiles" (las "baldosas" o imágenes que componen el mapa)
+# POR QUÉ: Usamos proveedores gratuitos (CARTO, OpenStreetMap, Esri)
+# que no requieren un Token/llave de API, solucionando el problema del mapa en blanco.
+url_claro = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+url_oscuro = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+url_callejero = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+url_satelite = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+
+# Textos de atribución (requeridos por los proveedores de mapas)
+attr_carto = '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+attr_osm = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+attr_esri = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye...'
+
+
+# --- 5. INICIALIZACIÓN Y LAYOUT DE LA APP DASH ---
+
+# Creamos la instancia de la aplicación Dash
 app = dash.Dash(__name__)
-app.title = "Dashboard Hidroeléctricas EPM"
+app.title = "Dashboard Hidroeléctricas EPM" # Título en la pestaña del navegador
 
-# --- Figura: Mapa Geográfico (GeoDatos) ---
-fig_mapa = px.scatter_geo(
-    df_mapa,
-    lat='lat',
-    lon='lon',
-    color='nivel_pct',
-    hover_name='id_central',
-    hover_data={'nivel_msnm': ':.2f', 'lat': False, 'lon': False, 'nivel_pct': ':.1f%'},
-    size=np.ones(len(df_mapa)) * 15, # Tamaño fijo
-    color_continuous_scale='RdYlGn', # Rojo-Amarillo-Verde
-    range_color=[30, 100], # Rango para la escala de color
-    scope='south america',
-    title='Estado Actual de Centrales'
-)
-# Centrar el mapa en Colombia
-fig_mapa.update_geos(center=dict(lat=6.5, lon=-75), projection_scale=5.5)
-fig_mapa.update_layout(margin={"r":0,"t":40,"l":0,"b":0})
-
-# --- Layout de la Aplicación ---
-app.layout = html.Div(style={'fontFamily': 'Arial, sans-serif', 'padding': '10px'})(children=[
+# --- Layout (Estructura Visual) ---
+# Define la apariencia de la página usando componentes HTML y Dash
+app.layout = html.Div(
+    # 'style' aplica CSS. Aquí definimos la fuente y un padding general.
+    style={'fontFamily': 'Arial, sans-serif', 'padding': '10px'}, 
+    children=[ # 'children' contiene los componentes "hijos" de este Div
     
-    html.H1(children='Dashboard de Monitoreo Hidroeléctricas'),
-    html.Hr(),
-    
-    html.Div(className='row', style={'display': 'flex'}, children=[
-        # Columna Izquierda: Mapa
-        html.Div(style={'width': '40%', 'padding': '10px'}, children=[
-            html.H3('Mapa de Centrales'),
-            dcc.Graph(
-                id='mapa-centrales',
-                figure=fig_mapa,
-                clickData=None # Importante para el callback
-            )
-        ]),
+        # Título principal
+        html.H1(children='Dashboard de Monitoreo Hidroeléctricas'),
+        # Línea horizontal
+        html.Hr(),
         
-        # Columna Derecha: Gráfico de Series de Tiempo
-        html.Div(style={'width': '60%', 'padding': '10px'}, children=[
-            html.H3(id='titulo-grafico-detalle', children='Detalle de Central'),
-            dcc.Graph(id='grafico-detalle')
-        ])
-    ])
-])
+        # Contenedor de Fila (para las dos columnas)
+        html.Div(
+            className='row', # Un nombre de clase (para CSS opcional)
+            # Usamos 'display: flex' para crear un layout de columnas flexibles
+            style={'display': 'flex'}, 
+            children=[
+                
+                # --- Columna Izquierda: Mapa ---
+                html.Div(
+                    style={'width': '40%', 'padding': '10px'}, # Esta columna ocupa el 40%
+                    children=[
+                        html.H3('Mapa de Centrales'),
+                        
+                        # --- El Mapa Leaflet ---
+                        dl.Map(
+                            center=[6.5, -75], # Centro inicial del mapa (Colombia)
+                            zoom=6, # Nivel de zoom inicial
+                            style={'height': '500px'}, # Altura fija (IMPORTANTE para que se vea)
+                            children=[
+                                # --- Controlador de Capas ---
+                                # PARA QUÉ: Muestra un icono en la esquina que
+                                # permite al usuario cambiar el mapa base.
+                                dl.LayersControl(
+                                    [
+                                        # Capa Base 1: Claro
+                                        dl.BaseLayer( # Define una opción en el controlador
+                                            # El mapa en sí
+                                            dl.TileLayer(url=url_claro, attribution=attr_carto),
+                                            name="Claro", # Nombre en el menú
+                                            checked=True # Esta es la capa por defecto
+                                        ),
+                                        # Capa Base 2: Oscuro
+                                        dl.BaseLayer(
+                                            dl.TileLayer(url=url_oscuro, attribution=attr_carto),
+                                            name="Oscuro",
+                                            checked=False
+                                        ),
+                                        # Capa Base 3: Callejero
+                                        dl.BaseLayer(
+                                            dl.TileLayer(url=url_callejero, attribution=attr_osm),
+                                            name="Callejero",
+                                            checked=False
+                                        ),
+                                        # Capa Base 4: Satélite
+                                        dl.BaseLayer(
+                                            dl.TileLayer(url=url_satelite, attribution=attr_esri),
+                                            name="Satélite",
+                                            checked=False
+                                        ),
+                                    ]
+                                ),
+                                # --- Capa de Marcadores ---
+                                # Esta capa "flota" encima del mapa base
+                                dl.LayerGroup(children=marcadores_leaflet)
+                            ]
+                        )
+                    ]
+                ),
+                
+                # --- Columna Derecha: Gráfico ---
+                html.Div(
+                    style={'width': '60%', 'padding': '10px'}, # Esta columna ocupa el 60%
+                    children=[
+                        # Título dinámico (se actualiza por el callback)
+                        html.H3(id='titulo-grafico-detalle', children='Detalle de Central'),
+                        
+                        # El Gráfico (inicialmente vacío)
+                        dcc.Graph(
+                            id='grafico-detalle', # ID para que el callback lo controle
+                            style={'height': '500px'} # Altura fija
+                        )
+                    ]
+                )
+            ]
+        )
+    ]
+)
 
-# --- Callbacks (Interactividad) ---
 
+# --- 6. CALLBACKS (Interactividad) ---
+
+# El "decorador" @app.callback conecta Inputs y Outputs con una función.
 @app.callback(
-    [Output('grafico-detalle', 'figure'),
-     Output('titulo-grafico-detalle', 'children')],
-    [Input('mapa-centrales', 'clickData')]
+    # Salidas (Outputs): Qué componentes vamos a actualizar
+    [
+        # Actualiza la propiedad 'figure' (el gráfico) del componente 'grafico-detalle'
+        Output('grafico-detalle', 'figure'),
+        # Actualiza la propiedad 'children' (el texto) del componente 'titulo-grafico-detalle'
+        Output('titulo-grafico-detalle', 'children')
+    ],
+    # Entradas (Inputs): Qué componentes van a disparar esta función
+    [
+        # --- Patrón "Pattern-Matching Callback" ---
+        # Input: Escucha la propiedad 'n_clicks' (número de clics) de...
+        # ...TODOS los componentes cuyo ID coincida con el diccionario
+        # {'type': 'map-marker', 'name': ALL}
+        # 'ALL' es un comodín que captura todos los nombres.
+        Input({'type': 'map-marker', 'name': ALL}, 'n_clicks')
+    ]
 )
-def actualizar_grafico_detalle(clickData):
+def actualizar_grafico_detalle(marker_n_clicks):
     """
-    Esta función se activa cuando el usuario hace clic en el mapa.
-    Filtra los datos históricos y de predicción para la central seleccionada.
+    Esta función se ejecuta CADA VEZ que un Input cambia (o sea, se hace clic en un marcador).
+    
+    PARA QUÉ: Para actualizar el gráfico de líneas y el título.
+    POR QUÉ: Es el "cerebro" de la interactividad del dashboard.
     """
     
-    # Determinar la central seleccionada
-    if clickData:
-        # Extrae el nombre de la central del punto de datos en el que se hizo clic
-        central_seleccionada = clickData['points'][0]['hovertext']
+    # 'dash.callback_context' nos da información sobre qué disparó el callback
+    ctx = dash.callback_context
+
+    # --- Determinar qué central seleccionar ---
+    
+    if not ctx.triggered:
+        # 'ctx.triggered' está vacío en la carga inicial (antes de cualquier clic)
+        # Seleccionamos la primera central de la lista como valor por defecto.
+        if not df_centrales.empty:
+            central_seleccionada = df_centrales['id_central'].iloc[0]
+        else:
+            central_seleccionada = "Ninguna Central"
     else:
-        # Si no hay clic (carga inicial), selecciona la primera central
-        central_seleccionada = df_centrales['id_central'].iloc[0]
+        # Si 'ctx.triggered' NO está vacío, significa que un usuario hizo clic.
         
+        # 1. Obtenemos el ID del componente que disparó el callback.
+        #    Viene como un string JSON: '{"name":"Guatape","type":"map-marker"}.n_clicks'
+        button_id_str = ctx.triggered[0]['prop_id'].split('.')[0]
+        
+        # 2. Convertimos ese string JSON a un diccionario Python
+        #    Ej: {'name': 'Guatape', 'type': 'map-marker'}
+        button_id_dict = json.loads(button_id_str)
+        
+        # 3. Extraemos el nombre de la central de ese diccionario
+        central_seleccionada = button_id_dict['name']
+    
+    # --- Generación del Gráfico ---
+        
+    # Actualizamos el título
     titulo = f"Detalle y Predicción: {central_seleccionada}"
     
-    # 1. Filtrar datos históricos
-    df_hist_filtrado = df_historico[df_historico['id_central'] == central_seleccionada]
-    
-    # 2. Filtrar predicciones
-    df_pred_filtrado = df_predicciones[df_predicciones['id_central'] == central_seleccionada]
-    
-    # 3. Obtener umbrales (Nivel Máximo)
-    nivel_max = df_centrales[df_centrales['id_central'] == central_seleccionada]['nivel_max_msnm'].iloc[0]
-    nivel_critico = nivel_max * 0.4 # Asumimos un 40% como crítico
-    
-    # --- Crear la figura de Plotly ---
+    # Creamos una figura vacía de Plotly
     fig = go.Figure()
     
-    # Trazo 1: Histórico
-    fig.add_trace(go.Scatter(
-        x=df_hist_filtrado['fecha_hora'],
-        y=df_hist_filtrado['nivel_msnm'],
-        mode='lines',
-        name='Nivel Histórico (Real)',
-        line=dict(color='blue')
-    ))
+    # Filtramos los DataFrames para obtener solo los datos de la central seleccionada
+    df_hist_filtrado = df_historico[df_historico['id_central'] == central_seleccionada]
+    df_pred_filtrado = df_predicciones[df_predicciones['id_central'] == central_seleccionada]
     
-    # Trazo 2: Predicciones (como puntos)
-    fig.add_trace(go.Scatter(
-        x=df_pred_filtrado['fecha_prediccion'],
-        y=df_pred_filtrado['nivel_predicho_msnm'],
-        mode='markers',
-        name='Predicción ML',
-        marker=dict(color='red', size=10, symbol='x')
-    ))
+    # Solo dibujamos si encontramos datos históricos
+    if not df_hist_filtrado.empty:
+        # Obtenemos los niveles máximo y crítico para esta central
+        nivel_max = df_centrales[df_centrales['id_central'] == central_seleccionada]['nivel_max_msnm'].iloc[0]
+        nivel_critico = nivel_max * 0.4 # Asumimos 40% como crítico
+        
+        # Trazo 1: Línea de datos históricos
+        fig.add_trace(go.Scatter(
+            x=df_hist_filtrado['fecha_hora'],
+            y=df_hist_filtrado['nivel_msnm'],
+            mode='lines',
+            name='Nivel Histórico (Real)',
+            line=dict(color='blue')
+        ))
+        
+        # Trazo 2: Puntos de predicción
+        fig.add_trace(go.Scatter(
+            x=df_pred_filtrado['fecha_prediccion'],
+            y=df_pred_filtrado['nivel_predicho_msnm'],
+            mode='markers', # 'markers' = solo puntos
+            name='Predicción ML',
+            marker=dict(color='red', size=10, symbol='x') # Marcador 'x' rojo
+        ))
+        
+        # Trazo 3: Línea de umbral (Nivel Máximo)
+        fig.add_hline(y=nivel_max, line_dash="dot", line_color="green",
+                      annotation_text="Nivel Máximo", annotation_position="bottom right")
+        # Trazo 4: Línea de umbral (Nivel Crítico)
+        fig.add_hline(y=nivel_critico, line_dash="dot", line_color="red",
+                      annotation_text="Nivel Crítico", annotation_position="bottom right")
+    else:
+        # Si no hay datos, muestra un mensaje en el gráfico
+        fig.update_layout(
+            annotations=[dict(text="No hay datos disponibles para esta central", 
+                              xref="paper", yref="paper",
+                              showarrow=False, font=dict(size=16))]
+        )
     
-    # Trazo 3: Líneas de Umbral
-    fig.add_hline(y=nivel_max, line_dash="dot", line_color="green",
-                  annotation_text="Nivel Máximo", annotation_position="bottom right")
-    fig.add_hline(y=nivel_critico, line_dash="dot", line_color="red",
-                  annotation_text="Nivel Crítico", annotation_position="bottom right")
-    
+    # Configuraciones de layout del gráfico (títulos de ejes, leyenda)
     fig.update_layout(
         title=f"Nivel del Embalse (msnm)",
         xaxis_title="Fecha",
         yaxis_title="Nivel (msnm)",
         legend_title="Leyenda",
-        hovermode="x unified"
+        hovermode="x unified" # Muestra info de todas las trazas al pasar el mouse
     )
     
+    # Retornamos los nuevos valores para los 'Outputs'
     return fig, titulo
 
 
-# --- Punto de Entrada Principal para correr el servidor ---
+# --- 7. PUNTO DE ENTRADA PRINCIPAL ---
+
+# `if __name__ == '__main__':`
+# Este bloque solo se ejecuta cuando corres el script directamente
+# (ej. `python dashboard/app.py`)
+# No se ejecuta si este archivo es importado por otro.
 if __name__ == '__main__':
-    # Ejecutar todos los scripts de datos y modelo antes de lanzar el dashboard
-    # En un entorno de producción, esto se manejaría con un orquestador (ej. Airflow)
-    print("Asegurando que los datos y modelos están actualizados...")
-    import os
-    os.system('python src/data_ingestion.py')
-    os.system('python src/model_training.py')
-    os.system('python src/model_prediction.py')
     
+    # Definimos las rutas a los scripts de datos
+    script_ingestion = os.path.join("src", "data_ingestion.py")
+    script_training = os.path.join("src", "model_training.py")
+    script_prediction = os.path.join("src", "model_prediction.py")
+    
+    print("Asegurando que los datos y modelos están actualizados...")
+    
+    # --- Ejecución de scripts de datos ---
+    # PARA QUÉ: Asegurar que los datos (simulados) y el modelo (entrenado)
+    # estén frescos CADA VEZ que se inicia el dashboard.
+    # POR QUÉ: Esto es útil para desarrollo. En producción, estos scripts
+    # correrían por separado (ej. una vez al día) y el dashboard solo leería.
+    
+    print(f"Ejecutando {script_ingestion}...")
+    os.system(f'python {script_ingestion}')
+    
+    print(f"Ejecutando {script_training}...")
+    os.system(f'python {script_training}')
+    
+    print(f"Ejecutando {script_prediction}...")
+    os.system(f'python {script_prediction}')
+    
+    # --- Iniciar el servidor web ---
     print("\nLanzando el servidor del Dashboard en http://127.0.0.1:8050/")
-    app.run_server(debug=True)
+    # 'debug=True' activa el modo de depuración:
+    # 1. El servidor se reinicia automáticamente cuando guardas cambios en el código.
+    # 2. Muestra errores detallados en el navegador.
+    app.run(debug=True)
 ```
 
 **Para ejecutar este script:**
