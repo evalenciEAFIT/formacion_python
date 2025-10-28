@@ -12,8 +12,8 @@ Este documento contiene la implementación técnica completa, paso a paso, para 
 
 ---
 Conderé: 
-  - https://github.com/evalenciEAFIT/formacion_python/blob/main/ML/nivel6/ListaModelo.md
-  - 
+  - CheckList para crear modelos de ML y Aplicaciones: https://github.com/evalenciEAFIT/formacion_python/blob/main/ML/nivel6/ListaModelo.md   
+  - CheckList Dashborad: https://github.com/evalenciEAFIT/formacion_python/blob/main/ML/nivel6/ListaDashboard.md   
 ---
 ### Sección 0: Configuración del Entorno de Desarrollo
 
