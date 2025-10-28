@@ -78,47 +78,6 @@ Ahora, cualquier otra persona puede replicar tu entorno exacto simplemente corri
 
 Una buena estructura de carpetas es fundamental. Aquí tienes un script para crearla automáticamente.
 
-**Para macOS / Linux (guarda esto como `setup.sh` y ejecuta `bash setup.sh`):**
-
-```bash
-#!/bin/bash
-echo "Creando estructura de carpetas para el proyecto..."
-
-mkdir -p data
-mkdir -p dashboard/assets
-mkdir -p notebooks
-mkdir -p src
-mkdir -p models
-mkdir -p tests
-
-echo "Creando archivos iniciales..."
-
-# Archivos __init__.py para que Python reconozca los módulos
-touch src/__init__.py
-touch tests/__init__.py
-
-# Archivos de código principales (vacíos)
-touch src/data_ingestion.py
-touch src/feature_engineering.py
-touch src/model_training.py
-touch src/model_prediction.py
-touch src/report_generator.py
-touch dashboard/app.py
-
-# Marcadores de posición para carpetas
-touch data/.gitkeep
-touch models/.gitkeep
-
-# Archivos de exploración (opcional)
-touch notebooks/01_exploracion_datos.ipynb
-touch notebooks/02_prototipo_modelo_ml.ipynb
-
-# Archivos de proyecto
-touch README.md
-touch .gitignore
-
-echo "Estructura creada exitosamente."
-```
 
 **Para Windows (guarda esto como `setup.ps1` y ejecuta en PowerShell):**
 
