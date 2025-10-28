@@ -31,14 +31,6 @@ Un entorno virtual es una carpeta que contiene una instalación de Python y las 
 
 Deberás activar el entorno cada vez que trabajes en el proyecto.
 
-  * **En macOS / Linux:**
-
-    ```bash
-    source venv/bin/activate
-    ```
-
-    (Tu terminal debería ahora mostrar `(venv)` al inicio de la línea).
-
   * **En Windows (PowerShell):**
 
     ```powershell
@@ -50,6 +42,14 @@ Deberás activar el entorno cada vez que trabajes en el proyecto.
     ```bat
     .\venv\Scripts\activate.bat
     ```
+    (Tu terminal debería ahora mostrar `(venv)` al inicio de la línea).
+
+   * **En macOS / Linux:**
+
+    ```bash
+    source venv/bin/activate
+    ```
+
 
 #### 3\. Instalación de Paquetes y `requirements.txt`
 
