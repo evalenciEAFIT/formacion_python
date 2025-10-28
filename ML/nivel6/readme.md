@@ -11,7 +11,10 @@ Este documento contiene la implementación técnica completa, paso a paso, para 
 [Nivel 6: Guía: Proyecto de Visualización y Prediccióno](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel6)
 
 ---
-
+Conderé: 
+  - https://github.com/evalenciEAFIT/formacion_python/blob/main/ML/nivel6/ListaModelo.md
+  - 
+---
 ### Sección 0: Configuración del Entorno de Desarrollo
 
 Antes de escribir código, es crucial crear un entorno aislado para tu proyecto. Esto asegura que las librerías que instales no entren en conflicto con otros proyectos.
