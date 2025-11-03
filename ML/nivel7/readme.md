@@ -33,17 +33,13 @@
 
 ## **1. Introducción**
 
-Este sistema **monitorea en tiempo real** el flujo de agua desde la **represa** hasta los **pozos de distribución**, con:
+Este ejemplo esta enfocado en sistema **monitorea en tiempo real** el flujo de agua desde la **represa** hasta los **pozos de distribución**, con:
 
 - **Simulación de sensores IoT**  
 - **API segura y centralizada**  
 - **Dashboard profesional**  
 - **Informes automáticos**  
 
-**Todos los códigos incluyen comentarios detallados con:**
-> **PARA QUÉ** → Objetivo  
-> **POR QUÉ** → Justificación técnica  
-> **CÓMO** → Implementación
 
 ---
 
