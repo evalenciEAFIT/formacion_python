@@ -160,7 +160,8 @@ api_rest_flask/
 ## **6. Paso 1: Configuración del Entorno**
 
 ```bash
-mkdir api_rest_flask && cd api_rest_flask
+mkdir api_rest_flask 
+cd api_rest_flask 
 python -m venv venv
 venv\Scripts\activate    # Windows
 # source venv/bin/activate  # Linux/Mac
