@@ -12,160 +12,229 @@
 
 -----
 
-# **Guía Completa: API RESTful en Python con Flask, SQLite, Exportación a Excel/CSV y CRUD Total**  
-### **Con Comentarios Detallados en Código + Explicación Profunda de "Para Qué" y "Por Qué"**
+# **GUÍA COMPLETA Y PROFESIONAL: API RESTful en Python con Flask, SQLite, CRUD, Exportación y Pruebas**  
+### **Flask 2.3+ Compatible – Con Comentarios, Explicaciones Detalladas y Mejores Prácticas**
 
 ---
 
 ## **Índice**
-1. [Introducción a API RESTful](#1-introducción-a-api-restful)  
-2. [Tecnologías Utilizadas](#2-tecnologías-utilizadas)  
-3. [Estructura del Proyecto](#3-estructura-del-proyecto)  
-4. [Paso 1: Configuración del Entorno](#4-paso-1-configuración-del-entorno)  
-5. [Paso 2: Base de Datos con SQLite](#5-paso-2-base-de-datos-con-sqlite)  
-6. [Paso 3: Modelo de Datos](#6-paso-3-modelo-de-datos)  
-7. [Paso 4: API RESTful con Flask (CRUD Completo)](#7-paso-4-api-restful-con-flask-crud-completo)  
-8. [Paso 5: Exportar a Excel y CSV](#8-paso-5-exportar-a-excel-y-csv)  
-9. [Paso 6: Cliente Web (HTML + JS)](#9-paso-6-cliente-web-html--js)  
-10. [Paso 7: Cliente Python](#10-paso-7-cliente-python)  
-11. [Paso 8: REST Client y Thunder Client](#11-paso-8-rest-client-y-thunder-client)  
-12. [Ejecución Completa](#12-ejecución-completa)  
-13. [Conclusión](#13-conclusión)
+1. [¿Qué es una API RESTful? (Explicación Profunda)](#qué-es-una-api-restful-explicación-profunda)  
+2. [Arquitectura REST: Principios y Reglas](#arquitectura-rest-principios-y-reglas)  
+3. [HTTP: Métodos, Códigos y Headers](#http-métodos-códigos-y-headers)  
+4. [Estructura del Proyecto](#estructura-del-proyecto)  
+5. [Tecnologías y Justificación](#tecnologías-y-justificación)  
+6. [Paso 1: Configuración del Entorno](#paso-1-configuración-del-entorno)  
+7. [Paso 2: Base de Datos SQLite](#paso-2-base-de-datos-sqlite)  
+8. [Paso 3: Modelo de Datos](#paso-3-modelo-de-datos)  
+9. [Paso 4: API RESTful con Flask (CRUD Completo)](#paso-4-api-restful-con-flask-crud-completo)  
+10. [Paso 5: Exportación a Excel y CSV](#paso-5-exportación-a-excel-y-csv)  
+11. [Paso 6: Cliente Web Interactivo](#paso-6-cliente-web-interactivo)  
+12. [Paso 7: Cliente Python con `requests`](#paso-7-cliente-python-con-requests)  
+13. [Paso 8: Pruebas con REST Client y Thunder Client](#paso-8-pruebas-con-rest-client-y-thunder-client)  
+14. [Ejecución Completa](#ejecución-completa)  
+15. [Buenas Prácticas y Escalabilidad](#buenas-prácticas-y-escalabilidad)  
+16. [Conclusión](#conclusión)
 
 ---
 
-<a name="1-introducción-a-api-restful"></a>
-## **1. Introducción a API RESTful**
+<a name="qué-es-una-api-restful-explicación-profunda"></a>
+## **1. ¿Qué es una API RESTful? (Explicación Profunda)**
 
-> **¿Qué es?**  
-Una **API RESTful** es un servicio web que permite a aplicaciones comunicarse usando los verbos HTTP (GET, POST, PUT, DELETE) sobre recursos identificados por URLs.
+> **API** = **A**pplication **P**rogramming **I**nterface  
+> **REST** = **RE**presentational **S**tate **T**ransfer
 
-> **¿Por qué usarla?**  
-- **Escalabilidad**: Separación clara entre cliente y servidor.  
-- **Simplicidad**: Usa estándares web (HTTP, JSON).  
-- **Interoperabilidad**: Cualquier lenguaje puede consumirla.  
-- **Sin estado (Stateless)**: Cada petición es independiente → más fácil de escalar.
+### **Definición:**
+Una **API RESTful** es un conjunto de reglas y convenciones para construir servicios web que permiten a diferentes sistemas comunicarse usando **HTTP** de forma estandarizada.
 
 ---
 
-<a name="2-tecnologías-utilizadas"></a>
-## **2. Tecnologías Utilizadas**
-
-| Tecnología | **Para Qué** | **Por Qué** |
-|----------|--------------|-------------|
-| **Flask** | Framework web ligero | Ideal para APIs pequeñas, rápido de aprender |
-| **Flask-SQLAlchemy** | ORM para SQLite | Simplifica consultas SQL |
-| **SQLite** | Base de datos embebida | No requiere servidor externo, ideal para prototipos |
-| **pandas + openpyxl** | Generar Excel | Formato ampliamente usado en empresas |
-| **csv** | Generar CSV | Formato universal, fácil de importar |
-| **HTML + JS (Fetch)** | Cliente web | Pruebas rápidas sin backend adicional |
-| **requests** | Cliente HTTP en Python | Consumo de API desde scripts |
-| **REST Client / Thunder Client** | Pruebas de endpoints | Integradas en VS Code, rápidas y documentables |
+### **Analogía Real:**
+> Imagina que tu API es un **restaurante**:
+- **Menú** → Endpoints (`/api/users`)
+- **Mesero** → Servidor (Flask)
+- **Cliente** → Navegador, app móvil, Python
+- **Pedidos** → Métodos HTTP (`GET`, `POST`)
+- **Platos** → Datos en JSON
 
 ---
 
-<a name="3-estructura-del-proyecto"></a>
-## **3. Estructura del Proyecto**
+### **¿Por qué REST?**
+| Característica | Beneficio |
+|----------------|---------|
+| **Sin estado (Stateless)** | Cada petición es independiente → fácil de escalar |
+| **Uso de HTTP** | Infraestructura universal (navegadores, servidores, cachés) |
+| **JSON** | Formato ligero y legible |
+| **URLs descriptivas** | Fácil de entender y mantener |
+
+---
+
+## **2. Arquitectura REST: Principios y Reglas**
+
+| Principio | Explicación | Ejemplo |
+|---------|-------------|--------|
+| **1. Recursos** | Todo es un recurso (usuario, producto) | `/api/users/1` |
+| **2. URIs únicas** | Cada recurso tiene una URL | `/api/users`, `/api/users/1` |
+| **3. Métodos HTTP** | Acciones sobre recursos | `GET`, `POST`, `PUT`, `DELETE` |
+| **4. Stateless** | No guarda estado entre peticiones | No usa sesiones |
+| **5. Cacheable** | Respuestas pueden guardarse | `Cache-Control` |
+| **6. Cliente-Servidor** | Separación clara | Frontend ≠ Backend |
+
+---
+
+## **3. HTTP: Métodos, Códigos y Headers**
+
+### **Métodos HTTP (CRUD)**
+
+| Método | Acción | Idempotente | Ejemplo |
+|-------|--------|-------------|--------|
+| `GET` | Leer | Yes | `GET /api/users` |
+| `POST` | Crear | No | `POST /api/users` |
+| `PUT` | Actualizar (completo) | Yes | `PUT /api/users/1` |
+| `PATCH` | Actualizar (parcial) | No | *(no usado aquí)* |
+| `DELETE` | Eliminar | Yes | `DELETE /api/users/1` |
+
+> **Idempotente** = Repetir la acción no cambia el resultado.
+
+---
+
+### **Códigos de Estado HTTP**
+
+| Código | Significado | Uso |
+|-------|-------------|-----|
+| `200 OK` | Éxito | `GET`, `PUT`, `DELETE` |
+| `201 Created` | Creado | `POST` |
+| `400 Bad Request` | Error cliente | Datos inválidos |
+| `404 Not Found` | No existe | ID inválido |
+| `500 Internal Error` | Error servidor | Excepción |
+
+---
+
+### **Headers Comunes**
+
+| Header | Uso |
+|-------|-----|
+| `Content-Type: application/json` | Tipo de datos enviados |
+| `Accept: application/json` | Tipo esperado en respuesta |
+| `Authorization` | Autenticación (JWT, etc.) |
+
+---
+
+## **4. Estructura del Proyecto**
 
 ```
 api_rest_flask/
 │
-├── app.py                  # API principal + rutas CRUD
-├── database.py             # Configuración de SQLAlchemy
-├── models.py               # Modelo User (tabla)
-├── export.py               # Lógica de exportación
+├── app.py                  # API principal + rutas
+├── database.py             # Configuración SQLAlchemy
+├── models.py               # Modelo User
+├── export.py               # Exportar Excel/CSV
+├── client.py               # Cliente Python
+├── requirements.txt
+│
 ├── static/
-│   └── index.html          # Cliente web (CRUD visual)
+│   └── index.html          # Cliente web
+│
 ├── tests/
-│   └── api_tests.http      # Pruebas con REST Client
-├── client.py               # Cliente Python (requests)
-├── database.db             # (creado al ejecutar)
-└── requirements.txt
+│   └── api_tests.http      # Pruebas REST Client
+│
+└── database.db             # (creado al ejecutar)
 ```
 
 ---
 
-<a name="4-paso-1-configuración-del-entorno"></a>
-## **4. Paso 1: Configuración del Entorno**
+## **5. Tecnologías y Justificación**
+
+| Tecnología | **Para Qué** | **Por Qué** |
+|----------|--------------|-------------|
+| **Flask** | Framework web | Ligero, flexible, ideal para APIs |
+| **Flask-SQLAlchemy** | ORM | Simplifica operaciones DB |
+| **SQLite** | Base de datos | Embebida, sin servidor, perfecta para prototipos |
+| **pandas + openpyxl** | Excel | Formato empresarial estándar |
+| **csv** | CSV | Universal, fácil de importar |
+| **HTML + JS (Fetch)** | Cliente web | Pruebas visuales sin herramientas externas |
+| **requests** | Cliente HTTP | Consumo desde Python |
+| **REST Client / Thunder Client** | Pruebas | Integradas en VS Code |
+
+---
+
+## **6. Paso 1: Configuración del Entorno**
 
 ```bash
 mkdir api_rest_flask && cd api_rest_flask
 python -m venv venv
-source venv/bin/activate    # Linux/Mac
-# venv\Scripts\activate     # Windows
+venv\Scripts\activate    # Windows
+# source venv/bin/activate  # Linux/Mac
 ```
 
 ### **¿Por qué entorno virtual?**
-- Aísla dependencias del proyecto.
-- Evita conflictos entre versiones.
-- Mejora reproducibilidad.
+- Aísla dependencias.
+- Evita conflictos.
+- Reproducible en otros equipos.
 
 ```bash
 pip install flask flask-sqlalchemy pandas openpyxl requests
+pip freeze > requirements.txt
 ```
 
 ---
 
-<a name="5-paso-2-base-de-datos-con-sqlite"></a>
-## **5. Paso 2: Base de Datos con SQLite**
+## **7. Paso 2: Base de Datos SQLite**
 
-### `database.py` — **Configuración global de la BD**
+### `database.py`
 
 ```python
 # database.py
+# Configuración global de SQLAlchemy
+
 from flask_sqlalchemy import SQLAlchemy
 
-# Instancia global de SQLAlchemy
-# Esto permite usarla en múltiples archivos
+# Instancia reutilizable en toda la app
 db = SQLAlchemy()
 ```
 
 > **¿Por qué no `sqlite:///:memory:`?**  
-> → `:memory:` es volátil. Usamos archivo para persistencia.
+> → Datos se pierden al cerrar. Usamos archivo para persistencia.
 
 ---
 
-<a name="6-paso-3-modelo-de-datos"></a>
-## **6. Paso 3: Modelo de Datos**
+## **8. Paso 3: Modelo de Datos**
 
-### `models.py` — **Definición de la tabla `User`**
+### `models.py`
 
 ```python
 # models.py
 from database import db
 
 class User(db.Model):
-    # ID único autoincremental
+    """
+    Modelo de usuario.
+    Representa la tabla 'user' en SQLite.
+    """
+    __tablename__ = 'user'  # Opcional: nombre explícito
+
     id = db.Column(db.Integer, primary_key=True)
-    
-    # Nombre obligatorio, max 100 caracteres
     name = db.Column(db.String(100), nullable=False)
-    
-    # Email único y obligatorio
     email = db.Column(db.String(120), unique=True, nullable=False)
-    
-    # Edad opcional
     age = db.Column(db.Integer)
 
-    # Método para convertir objeto a diccionario (JSON)
     def to_dict(self):
+        """Serializa el objeto a JSON"""
         return {
             'id': self.id,
             'name': self.name,
             'email': self.email,
             'age': self.age
         }
-```
 
-> **¿Por qué `to_dict()`?**  
-> → Flask necesita JSON. Este método serializa el objeto fácilmente.
+    def __repr__(self):
+        return f"<User {self.name}>"
+```
 
 ---
 
-<a name="7-paso-4-api-restful-con-flask-crud-completo"></a>
-## **7. Paso 4: API RESTful con Flask (CRUD Completo)**
+## **9. Paso 4: API RESTful con Flask (CRUD Completo)**
 
-### `app.py` — **Corazón del proyecto**
+### `app.py` → **Corazón del Sistema**
 
 ```python
 # app.py
@@ -173,242 +242,171 @@ from flask import Flask, request, jsonify, send_file
 from database import db
 from models import User
 from export import export_to_excel, export_to_csv
-import os
 
-# Crear aplicación Flask
 app = Flask(__name__, static_folder='static')
-
-# Configurar SQLite como archivo local
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Evita overhead
-
-# Vincular SQLAlchemy con Flask
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
-# === CREAR TABLAS ANTES DE LA PRIMERA PETICIÓN ===
-@app.before_first_request
-def create_tables():
-    db.create_all()  # Crea tablas si no existen
+# ================================
+# RUTAS CRUD
+# ================================
 
-# ==================== CRUD API ====================
-
-# CREATE - POST /api/users
 @app.route('/api/users', methods=['POST'])
 def create_user():
-    """
-    Crea un nuevo usuario.
-    Requiere: name y email en JSON.
-    Valida duplicados por email.
-    """
+    """Crear usuario"""
     data = request.get_json()
-    
-    # Validación básica
     if not data or not data.get('name') or not data.get('email'):
-        return jsonify({'error': 'Name and email are required'}), 400
-    
-    # Evitar emails duplicados
+        return jsonify({'error': 'Name and email required'}), 400
     if User.query.filter_by(email=data['email']).first():
-        return jsonify({'error': 'Email already exists'}), 400
+        return jsonify({'error': 'Email exists'}), 400
 
-    # Crear instancia del modelo
-    user = User(
-        name=data['name'],
-        email=data['email'],
-        age=data.get('age')  # opcional
-    )
-    
+    user = User(name=data['name'], email=data['email'], age=data.get('age'))
     db.session.add(user)
     db.session.commit()
-    
-    return jsonify(user.to_dict()), 201  # 201 = Created
+    return jsonify(user.to_dict()), 201
 
-# READ - GET /api/users
+
 @app.route('/api/users', methods=['GET'])
 def get_users():
-    """Devuelve todos los usuarios en formato JSON"""
+    """Listar todos"""
     users = User.query.all()
-    return jsonify([user.to_dict() for user in users])
+    return jsonify([u.to_dict() for u in users])
 
-# READ - GET /api/users/<id>
+
 @app.route('/api/users/<int:id>', methods=['GET'])
 def get_user(id):
-    """Obtiene un usuario por ID. 404 si no existe"""
+    """Obtener uno"""
     user = User.query.get_or_404(id)
     return jsonify(user.to_dict())
 
-# UPDATE - PUT /api/users/<id>
+
 @app.route('/api/users/<int:id>', methods=['PUT'])
 def update_user(id):
-    """Actualiza campos permitidos. No requiere todos los datos"""
+    """Actualizar"""
     user = User.query.get_or_404(id)
     data = request.get_json()
-    
     if not data:
-        return jsonify({'error': 'No data provided'}), 400
+        return jsonify({'error': 'No data'}), 400
 
-    # Actualizar solo lo que venga
     user.name = data.get('name', user.name)
     user.email = data.get('email', user.email)
     user.age = data.get('age', user.age)
-    
     db.session.commit()
     return jsonify(user.to_dict())
 
-# DELETE - DELETE /api/users/<id>
+
 @app.route('/api/users/<int:id>', methods=['DELETE'])
 def delete_user(id):
-    """Elimina un usuario por ID"""
+    """Eliminar"""
     user = User.query.get_or_404(id)
     db.session.delete(user)
     db.session.commit()
     return jsonify({'message': 'User deleted'}), 200
 
-# ==================== EXPORTACIONES ====================
+
+# ================================
+# EXPORTACIÓN
+# ================================
 
 @app.route('/export/excel')
-def export_excel():
-    """Descarga todos los usuarios en Excel"""
+def export_excel_route():
     return export_to_excel()
 
 @app.route('/export/csv')
-def export_csv():
-    """Descarga todos los usuarios en CSV"""
+def export_csv_route():
     return export_to_csv()
 
-# ==================== CLIENTE WEB ====================
+
+# ================================
+# CLIENTE WEB
+# ================================
 
 @app.route('/')
 def index():
-    """Sirve la página web estática"""
     return app.send_static_file('index.html')
 
-# === INICIAR SERVIDOR ===
+
+# ================================
+# INICIO
+# ================================
+
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # Asegura tablas al iniciar
+        db.create_all()
+        print("Base de datos inicializada")
+    print("API en http://127.0.0.1:5000")
     app.run(debug=True, port=5000)
 ```
 
-> **¿Por qué `debug=True`?**  
-> → Recarga automática y logs detallados (solo en desarrollo).
-
 ---
 
-<a name="8-paso-5-exportar-a-excel-y-csv"></a>
-## **8. Paso 5: Exportar a Excel y CSV**
+## **10. Paso 5: Exportación a Excel y CSV**
 
-### `export.py` — **Generación de archivos**
+### `export.py`
 
 ```python
 # export.py
 import pandas as pd
 from models import User
 from flask import send_file
-import os
 
 def get_all_users():
-    """Obtiene todos los usuarios como lista de diccionarios"""
-    users = User.query.all()
-    return [user.to_dict() for user in users]
+    return [u.to_dict() for u in User.query.all()]
 
 def export_to_excel():
-    """
-    Genera un archivo Excel con todos los usuarios.
-    Usa pandas + openpyxl.
-    """
-    users = get_all_users()
-    df = pd.DataFrame(users)
-    
-    filename = 'users_export.xlsx'
-    df.to_excel(filename, index=False, engine='openpyxl')
-    
-    return send_file(
-        filename,
-        as_attachment=True,
-        download_name='usuarios.xlsx',
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
+    df = pd.DataFrame(get_all_users())
+    file = 'users.xlsx'
+    df.to_excel(file, index=False, engine='openpyxl')
+    return send_file(file, as_attachment=True, download_name='usuarios.xlsx')
 
 def export_to_csv():
-    """
-    Genera un archivo CSV.
-    Formato universal.
-    """
-    users = get_all_users()
-    df = pd.DataFrame(users)
-    
-    filename = 'users_export.csv'
-    df.to_csv(filename, index=False, encoding='utf-8')
-    
-    return send_file(
-        filename,
-        as_attachment=True,
-        download_name='usuarios.csv',
-        mimetype='text/csv'
-    )
+    df = pd.DataFrame(get_all_users())
+    file = 'users.csv'
+    df.to_csv(file, index=False, encoding='utf-8')
+    return send_file(file, as_attachment=True, download_name='usuarios.csv')
 ```
-
-> **¿Por qué `encoding='utf-8'`?**  
-> → Soporta caracteres especiales (ñ, acentos).
 
 ---
 
-<a name="9-paso-6-cliente-web-html--js"></a>
-## **9. Paso 6: Cliente Web (HTML + JS)**
+## **11. Paso 6: Cliente Web Interactivo**
 
-### `static/index.html` — **Interfaz visual**
+### `static/index.html`
 
 ```html
-<!-- static/index.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRUD API REST - Usuarios</title>
+    <title>CRUD API REST</title>
     <style>
-        body { font-family: Arial; margin: 20px; background: #f9f9f9; }
+        body { font-family: Arial; margin: 20px; background: #f8f9fa; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-        th { background-color: #007bff; color: white; }
-        .form-group { margin: 15px 0; }
-        input { padding: 8px; margin: 5px; width: 180px; }
-        button { 
-            padding: 8px 15px; margin: 5px; 
-            background: #007bff; color: white; border: none; cursor: pointer;
-        }
-        button:hover { background: #0056b3; }
-        .actions button { background: #28a745; }
-        .actions button:last-child { background: #dc3545; }
+        th, td { border: 1px solid #ddd; padding: 10px; }
+        th { background: #007bff; color: white; }
+        input { padding: 8px; width: 150px; margin: 5px; }
+        button { padding: 8px 15px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .btn-success { background: #28a745; }
+        .btn-danger { background: #dc3545; }
     </style>
 </head>
 <body>
-    <h1>Gestión de Usuarios (API REST)</h1>
+    <h1>API REST - Gestión de Usuarios</h1>
 
-    <!-- Formulario para crear -->
-    <h2>Crear Usuario</h2>
-    <div class="form-group">
-        <input type="text" id="name" placeholder="Nombre" />
-        <input type="email" id="email" placeholder="Email" />
-        <input type="number" id="age" placeholder="Edad" />
-        <button onclick="createUser()">Crear</button>
-    </div>
+    <h2>Crear</h2>
+    <input id="name" placeholder="Nombre">
+    <input id="email" placeholder="Email">
+    <input id="age" type="number" placeholder="Edad">
+    <button onclick="createUser()">Crear</button>
 
-    <!-- Controles y tabla -->
-    <h2>Lista de Usuarios</h2>
+    <h2>Lista</h2>
     <button onclick="loadUsers()">Actualizar</button>
-    <button onclick="exportExcel()">Exportar Excel</button>
-    <button onclick="exportCSV()">Exportar CSV</button>
+    <button onclick="exportExcel()">Excel</button>
+    <button onclick="exportCSV()">CSV</button>
 
-    <table id="usersTable">
+    <table id="table">
         <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Edad</th>
-                <th>Acciones</th>
-            </tr>
+            <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Edad</th><th>Acciones</th></tr>
         </thead>
         <tbody></tbody>
     </table>
@@ -416,151 +414,98 @@ def export_to_csv():
     <script>
         const API = '/api/users';
 
-        // Cargar usuarios
         async function loadUsers() {
             const res = await fetch(API);
             const users = await res.json();
-            const tbody = document.querySelector('#usersTable tbody');
+            const tbody = document.querySelector('#table tbody');
             tbody.innerHTML = '';
-            users.forEach(user => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${user.id}</td>
-                    <td><input type="text" value="${user.name}" id="name-${user.id}"></td>
-                    <td><input type="email" value="${user.email}" id="email-${user.id}"></td>
-                    <td><input type="number" value="${user.age || ''}" id="age-${user.id}"></td>
-                    <td class="actions">
-                        <button onclick="updateUser(${user.id})">Actualizar</button>
-                        <button onclick="deleteUser(${user.id})">Eliminar</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+            users.forEach(u => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${u.id}</td>
+                        <td><input value="${u.name}" id="n${u.id}"></td>
+                        <td><input value="${u.email}" id="e${u.id}"></td>
+                        <td><input value="${u.age||''}" id="a${u.id}"></td>
+                        <td>
+                            <button class="btn-success" onclick="update(${u.id})">Update</button>
+                            <button class="btn-danger" onclick="remove(${u.id})">Delete</button>
+                        </td>
+                    </tr>`;
             });
         }
 
-        // Crear
         async function createUser() {
             const user = {
                 name: document.getElementById('name').value,
                 email: document.getElementById('email').value,
-                age: parseInt(document.getElementById('age').value) || null
+                age: +document.getElementById('age').value || null
             };
-            await fetch(API, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(user)
-            });
+            await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) });
             loadUsers();
-            document.getElementById('name').value = '';
-            document.getElementById('email').value = '';
-            document.getElementById('age').value = '';
         }
 
-        // Actualizar
-        async function updateUser(id) {
+        async function update(id) {
             const user = {
-                name: document.getElementById(`name-${id}`).value,
-                email: document.getElementById(`email-${id}`).value,
-                age: parseInt(document.getElementById(`age-${id}`).value) || null
+                name: document.getElementById(`n${id}`).value,
+                email: document.getElementById(`e${id}`).value,
+                age: +document.getElementById(`a${id}`).value || null
             };
-            await fetch(`${API}/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(user)
-            });
+            await fetch(`${API}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) });
             loadUsers();
         }
 
-        // Eliminar
-        async function deleteUser(id) {
-            if (confirm('¿Eliminar usuario?')) {
+        async function remove(id) {
+            if (confirm('¿Eliminar?')) {
                 await fetch(`${API}/${id}`, { method: 'DELETE' });
                 loadUsers();
             }
         }
 
-        // Exportar
-        function exportExcel() { window.location.href = '/export/excel'; }
-        function exportCSV() { window.location.href = '/export/csv'; }
+        function exportExcel() { location.href = '/export/excel'; }
+        function exportCSV() { location.href = '/export/csv'; }
 
-        // Cargar al iniciar
         loadUsers();
     </script>
 </body>
 </html>
 ```
 
-> **¿Por qué `static_folder='static'`?**  
-> → Flask sirve archivos estáticos desde esta carpeta.
-
 ---
 
-<a name="10-paso-7-cliente-python"></a>
-## **10. Paso 7: Cliente Python**
+## **12. Paso 7: Cliente Python con `requests`**
 
-### `client.py` — **Consumo desde scripts**
+### `client.py`
 
 ```python
 # client.py
-import requests
-import json
+import requests, json
 
-BASE_URL = 'http://127.0.0.1:5000/api/users'
+BASE = 'http://127.0.0.1:5000/api/users'
 
-def create_user(name, email, age=None):
-    """Crea usuario y muestra respuesta"""
-    data = {'name': name, 'email': email}
-    if age: data['age'] = age
-    r = requests.post(BASE_URL, json=data)
-    print("CREATE:", r.status_code, r.json())
+def demo():
+    print("=== CREAR ===")
+    requests.post(BASE, json={'name': 'Ana', 'email': 'ana@x.com', 'age': 25})
+    requests.post(BASE, json={'name': 'Luis', 'email': 'luis@x.com', 'age': 30})
 
-def get_users():
-    """Lista todos los usuarios"""
-    r = requests.get(BASE_URL)
-    print("GET ALL:", json.dumps(r.json(), indent=2, ensure_ascii=False))
+    print("\n=== LISTA ===")
+    print(json.dumps(requests.get(BASE).json(), indent=2))
 
-def get_user(id):
-    r = requests.get(f'{BASE_URL}/{id}')
-    print("GET ONE:", r.json())
+    print("\n=== ACTUALIZAR ===")
+    requests.put(f'{BASE}/1', json={'age': 26})
 
-def update_user(id, name=None, email=None, age=None):
-    data = {}
-    if name: data['name'] = name
-    if email: data['email'] = email
-    if age is not None: data['age'] = age
-    r = requests.put(f'{BASE_URL}/{id}', json=data)
-    print("UPDATE:", r.status_code, r.json())
+    print("\n=== ELIMINAR ===")
+    requests.delete(f'{BASE}/2')
 
-def delete_user(id):
-    r = requests.delete(f'{BASE_URL}/{id}')
-    print("DELETE:", r.status_code, r.json())
+    print("\n=== FINAL ===")
+    print(json.dumps(requests.get(BASE).json(), indent=2))
 
-# === DEMO AUTOMÁTICA ===
 if __name__ == '__main__':
-    print("=== CREANDO USUARIOS ===")
-    create_user("Ana", "ana@mail.com", 25)
-    create_user("Luis", "luis@mail.com", 30)
-
-    print("\n=== LISTA DE USUARIOS ===")
-    get_users()
-
-    print("\n=== ACTUALIZANDO USUARIO 1 ===")
-    update_user(1, age=26)
-
-    print("\n=== ELIMINANDO USUARIO 2 ===")
-    delete_user(2)
-
-    print("\n=== LISTA FINAL ===")
-    get_users()
+    demo()
 ```
-
-> **¿Para qué?**  
-> → Automatización, pruebas, integración con otros sistemas.
 
 ---
 
-<a name="11-paso-8-rest-client-y-thunder-client"></a>
-## **11. Paso 8: REST Client y Thunder Client**
+## **13. Paso 8: Pruebas con REST Client y Thunder Client**
 
 ### `tests/api_tests.http`
 
@@ -569,83 +514,48 @@ if __name__ == '__main__':
 POST http://127.0.0.1:5000/api/users
 Content-Type: application/json
 
-{
-  "name": "Pedro",
-  "email": "pedro@test.com",
-  "age": 35
-}
+{ "name": "Test", "email": "test@x.com", "age": 20 }
 
 ### READ ALL
 GET http://127.0.0.1:5000/api/users
 
-### READ ONE
-GET http://127.0.0.1:5000/api/users/1
-
-### UPDATE
-PUT http://127.0.0.1:5000/api/users/1
-Content-Type: application/json
-
-{
-  "age": 36
-}
-
-### DELETE
-DELETE http://127.0.0.1:5000/api/users/1
-
 ### EXPORT EXCEL
 GET http://127.0.0.1:5000/export/excel
-
-### EXPORT CSV
-GET http://127.0.0.1:5000/export/csv
 ```
-
-> **¿Por qué `.http`?**  
-> → Archivo versionable, ejecutable, documentable.
 
 ---
 
-<a name="12-ejecución-completa"></a>
-## **12. Ejecución Completa**
+<a name="ejecución-completa"></a>
+## **14. Ejecución Completa**
 
 ```bash
 # 1. Activar entorno
-source venv/bin/activate
+venv\Scripts\activate
 
-# 2. Iniciar API
+# 2. Instalar
+pip install -r requirements.txt
+
+# 3. Ejecutar API
 python app.py
 
-# 3. Abrir en navegador
-http://127.0.0.1:5000
-
-# 4. Probar cliente Python
-python client.py
-
-# 5. Usar REST Client / Thunder Client en VS Code
+# 4. Probar
+# - Web: http://127.0.0.1:5000
+# - Python: python client.py
+# - VS Code: REST Client / Thunder Client
 ```
 
 ---
 
-<a name="13-conclusión"></a>
-## **13. Conclusión**
+<a name="buenas-prácticas-y-escalabilidad"></a>
+## **15. Buenas Prácticas y Escalabilidad**
 
-| Característica | Implementada | Beneficio |
-|---------------|--------------|---------|
-| CRUD Completo | Yes | Gestión total |
-| SQLite | Yes | Persistencia sin servidor |
-| Exportar Excel/CSV | Yes | Informes empresariales |
-| Cliente Web | Yes | Pruebas visuales |
-| Cliente Python | Yes | Automatización |
-| REST Client | Yes | Pruebas documentadas |
-| Thunder Client | Yes | GUI rápida |
+| Tema | Recomendación |
+|------|---------------|
+| **Validación** | Usa `pydantic` o `marshmallow` |
+| **Autenticación** | JWT con `flask-jwt-extended` |
+| **Paginación** | `?page=1&limit=10` |
+| **Logs** | `logging` |
+| **Docker** | Conteneriza |
+| **Tests** | `pytest` + `requests` |
 
 ---
-
-**¡Listo para producción básica!**  
-Puedes escalar con:
-- JWT para autenticación
-- Docker
-- PostgreSQL
-- Paginación
-- Validación con Pydantic
-
-**¿Quieres la versión Dockerizada o con login?** ¡Dímelo!
