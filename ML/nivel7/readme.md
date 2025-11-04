@@ -50,14 +50,51 @@ mi_api_proyecto/
   * `crud.py` solo habla con `models.py` y `database.py`.
   * Ningún archivo se preocupa por "cómo" funciona el otro, solo por su "qué".
 
-#### 2.2. Generar Estructura (Comandos)
+#### 2.2. Generar Estructura (Comandos)   
+Puedes crear la estructura de directorios y archivos vacíos abriendo una terminal de **PowerShell** y ejecutando estos comandos uno por uno:
 
-```bash
-mkdir mi_api_proyecto && cd mi_api_proyecto
-mkdir app data
-touch app/__init__.py app/main.py app/crud.py app/models.py app/schemas.py app/database.py
-touch requirements.txt
+```powershell
+# 1. Crea el directorio raíz del proyecto y entra en él
+mkdir mi_api_proyecto
+cd mi_api_proyecto
+
+# 2. Crea las carpetas 'app' y 'data'
+mkdir app, data
+
+# 3. Crea los archivos Python vacíos
+# 'New-Item -ItemType File' es el equivalente a 'touch'
+New-Item -ItemType File app\__init__.py
+New-Item -ItemType File app\main.py
+New-Item -ItemType File app\crud.py
+New-Item -ItemType File app\models.py
+New-Item -ItemType File app\schemas.py
+New-Item -ItemType File app\database.py
+
+# 4. Crea el archivo de dependencias (vacío por ahora)
+New-Item -ItemType File requirements.txt
 ```
+
+**Alternativa (Si usas la terminal clásica `CMD.exe`):**
+
+Si prefieres usar el "Símbolo del sistema" (CMD) en lugar de PowerShell, los comandos para crear archivos vacíos son ligeramente diferentes:
+
+```cmd
+:: 1. Crear directorios y entrar
+mkdir mi_api_proyecto
+cd mi_api_proyecto
+mkdir app
+mkdir data
+
+:: 2. Crear archivos vacíos (usando 'type nul > ...')
+type nul > app\__init__.py
+type nul > app\main.py
+type nul > app\crud.py
+type nul > app\models.py
+type nul > app\schemas.py
+type nul > app\database.py
+type nul > requirements.txt
+```
+-----
 
 #### 2.3. Dependencias
 
