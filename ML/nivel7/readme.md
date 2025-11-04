@@ -10,60 +10,55 @@
 [Nivel 6: Guía: Proyecto de Visualización y Prediccióno](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel6) |  
 [Nivel 7: Uso de API, caso práctico](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel7)
 
-Este documento incluye:
+---   
 
-  * La explicación de los conceptos y paquetes.
-  * La estructura de directorios y los comandos para Windows.
-  * El código completo y documentado del backend (API).
-  * Un script para generar datos de prueba.
-  * Dos ejemplos de cómo consumir la API: una página web y un script de Python.
+Aquí tienes el documento completo y unificado, paso a paso, para crear una API RESTful desde cero usando Flask.
+
+Esta guía está diseñada para que puedas copiar, pegar y ejecutar el proyecto, entendiendo cada parte del proceso. Incluye todas las correcciones de errores que hemos discutido (rutas 404, errores de importación, fallos de `seed.py`, etc.) e integra la solicitud de servir el `index.html` directamente desde Flask.
 
 -----
 
-## 🚀 Guía Completa: Creación de una API RESTful con Flask
+## 🚀 Guía Definitiva: Creación de una API RESTful con Flask
 
-Este documento te guiará en la creación de una API completa para gestionar "Tareas", usando Flask, Flask-RESTful y Flask-SQLAlchemy.
-
------
+Este documento te guiará en la creación de una API completa para gestionar "Tareas". Usaremos **Flask**, **Flask-RESTful** para la estructura de la API y **Flask-SQLAlchemy** para la base de datos.
 
 ### 1\. Conceptos Clave y Paquetes
 
-Antes de escribir código, entiende *por qué* usamos estas herramientas.
+Primero, entendamos *por qué* usamos estas herramientas.
 
 #### 📖 Terminología de API
 
   * **API (Application Programming Interface):** Es un "contrato" o "menú" que un software ofrece a otro. Define las reglas sobre cómo interactuar con él (ej. qué datos enviar, qué datos esperar de vuelta).
   * **REST (REpresentational State Transfer):** Es un estilo de arquitectura para diseñar APIs. Utiliza los métodos HTTP (`GET`, `POST`, `PUT`, `DELETE`) para interactuar con "Recursos" (en nuestro caso, las "Tareas").
   * **Endpoint:** Es una URL específica donde la API espera peticiones. En nuestro proyecto, tendremos dos:
-      * `/tareas` (para la lista completa)
+      * `/` (para servir nuestra página web)
+      * `/tareas` (para la lista de tareas)
       * `/tareas/<id>` (para una tarea individual)
-  * **JSON (JavaScript Object Notation):** Es el "idioma" estándar que usan las APIs para intercambiar datos. Es ligero y fácil de leer tanto para humanos como para máquinas.
-  * **CORS (Cross-Origin Resource Sharing):** ¡Este es el "CORN" que mencionaste\! Es un mecanismo de seguridad **del navegador**.
-      * **El Problema:** Por defecto, un navegador prohíbe que una página web (ej. `index.html`) solicite datos de una API que está en un "origen" (dominio/puerto) diferente. Tu API corre en `http://127.0.0.1:5000` y tu archivo se abre desde `file:///...`. Son orígenes distintos, por lo que el navegador bloquea la petición.
-      * **La Solución:** Usamos el paquete `Flask-CORS`. Al añadir `CORS(app)` a nuestra API, el servidor le envía una cabecera al navegador que dice: "Está bien, confío en peticiones de cualquier origen. Deja pasar la solicitud".
+  * **JSON (JavaScript Object Notation):** Es el "idioma" estándar que usan las APIs para intercambiar datos. Es ligero y fácil de leer.
+  * **CORS (Cross-Origin Resource Sharing):** Un problema de seguridad del navegador que ocurre cuando una página web (`file:///...`) intenta acceder a una API en un dominio diferente (`http://127.0.0.1:5000`).
+      * **Nuestra Solución:** Evitaremos este problema por completo. Serviremos nuestro `index.html` *desde* el mismo servidor Flask, por lo que tanto la página como la API vendrán del mismo "origen" (`127.0.0.1:5000`).
 
 #### 📦 "Por Qué" y "Para Qué" de los Paquetes
 
 | Paquete | Para Qué (Propósito) | Por Qué lo Elegimos (Justificación) |
 | :--- | :--- | :--- |
-| **Flask** | El Framework de la API | Es el motor central. Recibe peticiones HTTP y envía respuestas. Es ligero, flexible y nos da control total. |
-| **Flask-RESTful** | Capa de API REST | Simplifica la creación de APIs REST. Nos permite definir **Recursos** (clases) y mapea los métodos (`get`, `post`) a los verbos HTTP automáticamente. |
-| **Flask-SQLAlchemy**| ORM (Base de Datos) | Es el "traductor" entre Python y la BBDD. Nos permite definir tablas como clases de Python (`class Tarea`) y evita que escribamos SQL a mano. |
-| **Flask-CORS** | Habilitar CORS | Resuelve el problema de seguridad del navegador, permitiendo que nuestro `index.html` consuma la API. |
+| **Flask** | El Framework de la API | Es el motor central. Recibe peticiones HTTP y envía respuestas. Servirá tanto nuestra API como nuestra página web. |
+| **Flask-RESTful** | Capa de API REST | **Buena Práctica.** Simplifica la creación de APIs REST. Nos permite definir **Recursos** (clases) y mapea los métodos (`get`, `post`) a los verbos HTTP automáticamente. |
+| **Flask-SQLAlchemy**| ORM (Base de Datos) | **Buena Práctica.** Es el "traductor" entre Python y la BBDD. Nos permite definir tablas como clases de Python (`class Tarea`) y evita que escribamos SQL a mano. |
 | **requests** | Cliente Python | (No es para la API, sino para el cliente). Es la librería estándar en Python para realizar peticiones HTTP (consumir APIs). |
 
 -----
 
 ### 2\. Estructura y Configuración del Proyecto
 
-#### 2.1. Estructura Final de Archivos
+Usaremos una estructura que separa las responsabilidades (Modelos, Recursos, Configuración) y sigue las convenciones de Flask.
 
-Así se verá tu proyecto. Esta estructura separa las responsabilidades (la lógica de la BBDD, la lógica de la API, etc.).
+#### 2.1. Estructura Final de Archivos
 
 ```
 mi_api_flask/
 ├── app/                  # Núcleo de la aplicación
-│   ├── __init__.py       # Fábrica de la app (con CORS)
+│   ├── __init__.py       # Fábrica de la app (AQUÍ CORREGIMOS EL 404 y EL IMPORT_ERROR)
 │   ├── models.py         # Modelos de la BBDD
 │   ├── resources.py      # Endpoints (Lógica de la API)
 │   └── extensions.py     # Instancias (db, api)
@@ -71,19 +66,21 @@ mi_api_flask/
 ├── data/                 # Carpeta para la BBDD
 │   └── tareas.db         # Archivo de la BBDD SQLite
 │
+├── templates/            <-- CARPETA NUEVA (convención de Flask)
+│   └── index.html        <-- ARCHIVO MOVIDO AQUÍ
+│
 ├── venv/                 # Tu entorno virtual
 │
-├── index.html            # Cliente web (Frontend)
-├── client.py             # Cliente de prueba en Python
-├── seed.py               # Script para generar datos
+├── client.py             # Cliente de prueba en Python (CORREGIDO)
+├── seed.py               # Script para generar datos dumis (CORREGIDO)
 │
 ├── run.py                # Para iniciar el servidor
-└── requirements.txt      # Dependencias
+└── requirements.txt      # Dependencias (CORREGIDO)
 ```
 
 #### 2.2. Comandos de Generación (Windows PowerShell)
 
-Abre PowerShell, navega a tu carpeta de proyectos y ejecuta:
+Abre PowerShell y ejecuta estos comandos uno por uno.
 
 ```powershell
 # 1. Crea y activa un entorno virtual
@@ -93,21 +90,21 @@ python -m venv venv
 # 2. Crea la estructura de carpetas y archivos
 mkdir mi_api_flask
 cd mi_api_flask
-mkdir app, data
+mkdir app, data, templates  # <-- Creamos la carpeta templates
 
 # 3. Crea los archivos Python vacíos
 New-Item -ItemType File run.py, requirements.txt, seed.py, client.py
 New-Item -ItemType File app\__init__.py, app\models.py, app\resources.py, app\extensions.py
 
-# 4. Crea el cliente web vacío
-New-Item -ItemType File index.html
+# 4. Crea el cliente web vacío (dentro de templates)
+New-Item -ItemType File templates\index.html
 ```
 
 -----
 
 ### 3\. Dependencias
 
-Copia esto en tu archivo `requirements.txt`.
+Copia esto en tu archivo `requirements.txt`. (Ya no necesitamos `Flask-CORS`).
 
 **Archivo: `requirements.txt`**
 
@@ -115,7 +112,6 @@ Copia esto en tu archivo `requirements.txt`.
 Flask
 Flask-RESTful
 Flask-SQLAlchemy
-Flask-CORS
 requests
 ```
 
@@ -258,23 +254,21 @@ class TareaListResource(Resource):
 
 #### `app/__init__.py`
 
-*Propósito: Usar el "Patrón de Fábrica" para crear y configurar la aplicación Flask.*
+*Propósito: Usar el "Patrón de Fábrica" para crear y configurar la aplicación. **(Aquí se corrigen el `ImportError` y el `404 Not Found`)**.*
 
 ```python
 import os
-from flask import Flask
-from flask_cors import CORS  # Importar CORS
+from flask import Flask, render_template  # <-- 1. Importar render_template
+# (Ya no importamos CORS)
 from .extensions import db, api 
 from .resources import TareaResource, TareaListResource
 
+# 2. AQUÍ SE DEFINE LA FUNCIÓN, corrigiendo el ImportError
 def create_app():
     """
     Función Fábrica (Factory Pattern)
     """
     app = Flask(__name__)
-    
-    # Habilitar CORS para permitir peticiones desde el frontend
-    CORS(app)
     
     # --- Configuración de la Base de Datos (SQLite) ---
     basedir = os.path.abspath(os.path.dirname(__file__))
@@ -283,18 +277,28 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # --- Inicializar Extensiones ---
+    # Vincula las instancias con la aplicación 'app'
     db.init_app(app)
-    api.init_app(app)
+    api.init_app(app) # <-- 3. Esta línea vincula Flask-RESTful
 
-    # --- REGISTRO DE ENDPOINTS ---
-    # Conecta las clases (Recursos) a las URLs (Endpoints)
+    # --- REGISTRO DE ENDPOINTS DE LA API ---
+    # ¡Esto corrige el error 404!
     
-    # Endpoint: /tareas
+    # Endpoint de API: /tareas
     api.add_resource(TareaListResource, '/tareas')
     
-    # Endpoint: /tareas/<id>
+    # Endpoint de API: /tareas/<id>
     api.add_resource(TareaResource, '/tareas/<int:tarea_id>')
 
+    # --- RUTA PARA SERVIR EL FRONTEND ---
+    # 4. Esta es la nueva ruta que sirve tu página web
+    @app.route('/')
+    def index():
+        """Sirve el archivo index.html desde la carpeta 'templates'."""
+        # render_template busca 'index.html' en la carpeta 'templates'
+        return render_template('index.html')
+
+    # 5. LA FUNCIÓN DEVUELVE LA APP CREADA
     return app
 ```
 
@@ -328,32 +332,9 @@ if __name__ == '__main__':
 
 -----
 
-### 6\. Explicación: Métodos HTTP y Códigos de Estado
+### 6\. Generación de Datos Dumis
 
-#### Métodos HTTP (Verbos)
-
-| Verbo | Acción | Endpoint de Ejemplo | Método en `resources.py` |
-| :--- | :--- | :--- | :--- |
-| **`GET`** | **Leer** | `GET /tareas/1` | `get()` |
-| **`POST`** | **Crear** | `POST /tareas` | `post()` |
-| **`PUT`** | **Actualizar/Reemplazar** | `PUT /tareas/1` | `put()` |
-| **`DELETE`**| **Borrar** | `DELETE /tareas/1` | `delete()` |
-
-#### Códigos de Estado (Respuesta)
-
-| Código | Nombre | Cuándo lo Usamos en Nuestra API |
-| :--- | :--- | :--- |
-| **`200 OK`** | OK | Respuesta estándar para `GET` y `PUT` exitosos. |
-| **`201 Created`**| Creado | Respuesta estándar para un `POST` exitoso (creó un recurso). |
-| **`204 No Content`** | Sin Contenido | Respuesta estándar para un `DELETE` exitoso (no hay nada que devolver).|
-| **`400 Bad Request`**| Petición Incorrecta | `reqparse` lo devuelve automáticamente si faltan datos (ej. no envías `titulo`).|
-| **`404 Not Found`** | No Encontrado | Lo devolvemos si se pide un ID que no existe (ej. `GET /tareas/999`).|
-
------
-
-### 7\. Generación de Datos de Prueba
-
-Crea este archivo para llenar tu BBDD con datos de ejemplo.
+Este script llena tu BBDD con datos de ejemplo. **(Corregido para crear las tablas primero)**.
 
 **Archivo: `seed.py`**
 
@@ -377,34 +358,30 @@ with app.app_context():
     print("Eliminando datos antiguos...")
     db.session.query(Tarea).delete()
     
-    # 5. Crea los nuevos objetos Tarea
+    # 5. Crea los nuevos objetos Tarea (Datos Dumis)
     print("Creando nuevos datos de ejemplo...")
     t1 = Tarea(titulo="Comprar leche", descripcion="Recordar que sea deslactosada")
     t2 = Tarea(titulo="Estudiar API con Flask", completada=True)
     t3 = Tarea(titulo="Llamar al cliente")
     
-    # 6. Añade los objetos a la sesión y guarda en la BBDD
+    # 6. Añade los objetos a la sesión y guarda
     db.session.add_all([t1, t2, t3])
     db.session.commit()
     
     print("¡Datos de ejemplo creados exitosamente!")
 ```
 
-**Para ejecutarlo** (con `(venv)` activado):
-
-```powershell
-(venv) > python seed.py
-```
-
 -----
 
-### 8\. Los Clientes (Consumiendo la API)
+### 7\. Los Clientes (Consumiendo la API)
 
 Aquí tienes dos formas de usar tu API.
 
-#### 🌐 8.1. Ejemplo 1: Cliente Web (HTML + JavaScript)
+#### 🌐 7.1. Ejemplo 1: Cliente Web (HTML + JavaScript)
 
-**Archivo: `index.html`**
+**(Corregido para usar la ruta relativa `/tareas` y estar en la carpeta `templates`)**
+
+**Archivo: `templates/index.html`**
 
 ```html
 <!DOCTYPE html>
@@ -445,8 +422,10 @@ Aquí tienes dos formas de usar tu API.
     </div>
 
     <script>
-        // URL de la API
-        const API_URL = 'http://127.0.0.1:5000/tareas';
+        // --- ¡CAMBIO IMPORTANTE AQUÍ! ---
+        // Ahora usamos una ruta relativa, ya que el HTML y la API
+        // se sirven desde el mismo dominio (127.0.0.1:5000)
+        const API_URL = '/tareas';
         
         // Elementos del DOM
         const listaTareas = document.getElementById('lista-tareas');
@@ -456,26 +435,32 @@ Aquí tienes dos formas de usar tu API.
 
         // 1. OBTENER Y MOSTRAR TAREAS (GET)
         async function cargarTareas() {
-            const response = await fetch(API_URL);
-            const tareas = await response.json();
-            listaTareas.innerHTML = ''; // Limpia la lista
-            tareas.forEach(tarea => {
-                const li = document.createElement('li');
-                li.dataset.id = tarea.id;
-                li.dataset.titulo = tarea.titulo;
-                li.dataset.descripcion = tarea.descripcion || '';
-                li.dataset.completada = tarea.completada;
-                li.innerHTML = `
-                    <div class="tarea-info ${tarea.completada ? 'completada' : ''}">
-                        <strong>${tarea.titulo}</strong>
-                    </div>
-                    <div class="tarea-acciones">
-                        <button class="btn-completar" onclick="toggleCompletar(${tarea.id})">${tarea.completada ? 'Deshacer' : 'Completar'}</button>
-                        <button class="btn-borrar" onclick="borrarTarea(${tarea.id})">Borrar</button>
-                    </div>
-                `;
-                listaTareas.appendChild(li);
-            });
+            try {
+                const response = await fetch(API_URL);
+                const tareas = await response.json();
+                listaTareas.innerHTML = ''; // Limpia la lista
+                tareas.forEach(tarea => {
+                    const li = document.createElement('li');
+                    li.dataset.id = tarea.id;
+                    li.dataset.titulo = tarea.titulo;
+                    li.dataset.descripcion = tarea.descripcion || '';
+                    li.dataset.completada = tarea.completada;
+                    li.innerHTML = `
+                        <div class="tarea-info ${tarea.completada ? 'completada' : ''}">
+                            <strong>${tarea.titulo}</strong>
+                            <p style="margin: 4px 0 0; font-size: 0.9em;">${tarea.descripcion || ''}</p>
+                        </div>
+                        <div class="tarea-acciones">
+                            <button class="btn-completar" onclick="toggleCompletar(${tarea.id})">${tarea.completada ? 'Deshacer' : 'Completar'}</button>
+                            <button class="btn-borrar" onclick="borrarTarea(${tarea.id})">Borrar</button>
+                        </div>
+                    `;
+                    listaTareas.appendChild(li);
+                });
+            } catch (error) {
+                console.error("Error al cargar tareas:", error);
+                listaTareas.innerHTML = "<li>Error al conectar con la API.</li>";
+            }
         }
 
         // 2. CREAR NUEVA TAREA (POST)
@@ -527,42 +512,58 @@ Aquí tienes dos formas de usar tu API.
 </html>
 ```
 
-#### 🐍 8.2. Ejemplo 2: Cliente Python (`requests`)
+#### 🐍 7.2. Ejemplo 2: Cliente Python (`requests`)
+
+**(Corregido para manejar errores 404 antes de intentar leer JSON)**
 
 **Archivo: `client.py`**
 
 ```python
 import requests
 
-# URL base de la API
 BASE_URL = "http://127.0.0.1:5000/tareas"
 
 def print_tarea(tarea):
     """Función helper para imprimir una tarea formateada."""
     estado = "Completada" if tarea.get('completada') else "Pendiente"
     print(f"  ID: {tarea.get('id')} | Título: {tarea.get('titulo')} ({estado})")
+    if tarea.get('descripcion'):
+        print(f"     Desc: {tarea.get('descripcion')}")
+    print("-" * 30)
 
 def main_loop():
     print("--- Cliente de API en Python ---")
     
     # 1. CREAR una nueva tarea (POST)
     print("\n1. Creando nueva tarea (POST)...")
-    nueva_tarea_data = {"titulo": "Hacer demo en Python"}
+    nueva_tarea_data = {
+        "titulo": "Hacer demo en Python",
+        "descripcion": "Usar la librería requests"
+    }
+    
     try:
         response = requests.post(BASE_URL, json=nueva_tarea_data)
+        
+        # --- ¡MANEJO DE ERRORES CORREGIDO! ---
+        # Verificamos el código de estado ANTES de intentar leer el JSON
         if response.status_code == 201:
             tarea_creada = response.json()
-            print("¡Tarea creada!")
+            print("¡Tarea creada exitosamente!")
             print_tarea(tarea_creada)
             tarea_id = tarea_creada.get('id')
         else:
+            # Si no es 201, imprime el error y para la ejecución
             print(f"Error al crear: {response.status_code}")
-            return
+            print(f"Respuesta del servidor (no JSON): {response.text}") # Imprime el error 404
+            return # Salimos de la función
+            
     except requests.exceptions.ConnectionError:
         print("\n[ERROR] No se pudo conectar a la API.")
         print("Asegúrate de que el servidor (python run.py) esté corriendo.")
         return
         
+    # --- El resto del script solo se ejecuta si la creación fue exitosa ---
+
     # 2. OBTENER todas las tareas (GET)
     print("\n2. Obteniendo lista de tareas (GET)...")
     response = requests.get(BASE_URL)
@@ -571,22 +572,31 @@ def main_loop():
     for tarea in tareas:
         print_tarea(tarea)
         
-    # 3. ACTUALIZAR la tarea (PUT)
+    # 3. ACTUALIZAR la tarea que creamos (PUT)
     print(f"\n3. Actualizando tarea ID {tarea_id} (PUT)...")
-    update_data = {"titulo": "Hacer demo en Python", "completada": True}
+    update_data = {
+        "titulo": "Hacer demo en Python (¡Actualizado!)",
+        "descripcion": "Usar la librería requests",
+        "completada": True
+    }
     response = requests.put(f"{BASE_URL}/{tarea_id}", json=update_data)
     if response.status_code == 200:
         print("¡Tarea actualizada!")
         print_tarea(response.json())
+    else:
+        print(f"Error al actualizar: {response.status_code}")
 
     # 4. BORRAR la tarea (DELETE)
     print(f"\n4. Borrando tarea ID {tarea_id} (DELETE)...")
     response = requests.delete(f"{BASE_URL}/{tarea_id}")
+    
     if response.status_code == 204:
-        print("¡Tarea borrada!")
+        print("¡Tarea borrada exitosamente! (Código 204)")
+    else:
+        print(f"Error al borrar: {response.status_code}")
         
-    # 5. VERIFICAR
-    print("\n5. Verificando la lista final...")
+    # 5. VERIFICAR que se haya borrado
+    print("\n5. Verificando la lista final de tareas...")
     response = requests.get(BASE_URL)
     tareas = response.json()
     print(f"Total de tareas ahora: {len(tareas)}")
@@ -599,24 +609,76 @@ if __name__ == "__main__":
 
 -----
 
-### 9\. Resumen de Ejecución
+### 8\. Resumen de Ejecución (Cómo Probar)
 
 1.  **Terminal 1 (Servidor API):**
 
       * Activa tu entorno: `.\venv\Scripts\Activate`
-      * *(Opcional)* Genera los datos: `python seed.py`
+      * *(Opcional)* Genera los datos dumis: `python seed.py`
       * **Inicia la API:** `python run.py`
-      * *Deja esta terminal abierta. Verás los logs (GET, POST, etc.) aquí.*
+      * *Deja esta terminal abierta. Verás que se inicia en `http://127.0.0.1:5000`.*
 
-2.  **Terminal 2 (Cliente Python):**
+2.  **Cliente Web (Navegador):**
+
+      * Abre tu navegador (Chrome, Edge, etc.).
+      * Ve a la dirección: `http://127.0.0.1:5000`
+      * *Tu aplicación web se cargará. Ya no necesitas hacer doble clic en `index.html`.*
+
+3.  **Terminal 2 (Cliente Python):**
 
       * Abre una **nueva terminal**.
+      * Navega a tu carpeta: `cd mi_api_flask`
       * Activa el mismo entorno: `.\venv\Scripts\Activate`
       * **Ejecuta el cliente:** `python client.py`
       * *Verás la salida del script creando, leyendo, actualizando y borrando tareas.*
 
-3.  **Navegador Web (Cliente Web):**
+-----
 
-      * Ve a la carpeta `mi_api_flask` en tu explorador de archivos.
-      * Haz doble clic en `index.html`.
-      * *La página se abrirá y podrás interactuar con la API (crear, borrar, etc.) desde tu navegador.*
+### 9\. Inspección de Endpoints en VS Code
+
+Mientras tu servidor (`python run.py`) está corriendo, puedes inspeccionar los endpoints desde VS Code.
+
+#### 9.1. Opción 1: Extensión "Thunder Client" (Visual)
+
+1.  Instala la extensión **"Thunder Client"** desde el panel de extensiones (`Ctrl+Shift+X`).
+2.  Haz clic en su icono (un rayo) en la barra lateral.
+3.  Haz clic en "New Request".
+4.  Prueba estos endpoints:
+      * `GET http://127.0.0.1:5000/tareas`
+      * `POST http://127.0.0.1:5000/tareas` (y añade un JSON en la pestaña "Body").
+
+#### 9.2. Opción 2: Extensión "REST Client" (Basada en Código)
+
+1.  Instala la extensión **"REST Client"**.
+
+2.  Crea un archivo llamado `test.http` en tu proyecto.
+
+3.  Pega esto y haz clic en "Send Request" encima de cada texto:
+
+    **Archivo: `test.http`**
+
+    ```http
+    ### 1. Obtener todas las tareas (GET)
+    GET http://127.0.0.1:5000/tareas
+
+    ### 2. Crear una nueva tarea (POST)
+    POST http://127.0.0.1:5000/tareas
+    Content-Type: application/json
+
+    {
+        "titulo": "Probar REST Client"
+    }
+
+    ### 3. Borrar la Tarea con ID=1 (DELETE)
+    DELETE http://127.0.0.1:5000/tareas/1
+    ```
+
+#### 9.3. Opción 3: El Depurador (Debugger)
+
+1.  Abre `app/resources.py`.
+2.  Haz clic a la izquierda del número de línea en `def get(self):` (en `TareaListResource`) para poner un **punto rojo (breakpoint)**.
+3.  Ve al panel "Ejecutar y depurar" (`Ctrl+Shift+D`).
+4.  Haz clic en el botón verde "Ejecutar y depurar" y selecciona **"Python File"**.
+5.  VS Code iniciará tu `run.py` en modo depuración.
+6.  Ahora, ve a tu navegador y abre `http://127.0.0.1:5000`.
+7.  ¡VS Code se congelará\! La ejecución se pausará en tu breakpoint, y podrás inspeccionar todas las variables antes de que se envíe la respuesta.
