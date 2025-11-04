@@ -368,17 +368,22 @@ app = create_app()
 # 2. 'app_context()' conecta el script a la BBDD
 with app.app_context():
     
-    # 3. Borra todos los datos antiguos
+    # 3. ¡CORRECCIÓN! Asegura que todas las tablas existan
+    #    Esto crea 'tareas.db' y la tabla 'tareas' si no existen.
+    print("Asegurando que las tablas de la BBDD existan...")
+    db.create_all()
+    
+    # 4. Borra todos los datos antiguos para empezar de cero
     print("Eliminando datos antiguos...")
     db.session.query(Tarea).delete()
     
-    # 4. Crea los nuevos objetos Tarea
+    # 5. Crea los nuevos objetos Tarea
     print("Creando nuevos datos de ejemplo...")
     t1 = Tarea(titulo="Comprar leche", descripcion="Recordar que sea deslactosada")
     t2 = Tarea(titulo="Estudiar API con Flask", completada=True)
     t3 = Tarea(titulo="Llamar al cliente")
     
-    # 5. Añade los objetos a la sesión y guarda
+    # 6. Añade los objetos a la sesión y guarda en la BBDD
     db.session.add_all([t1, t2, t3])
     db.session.commit()
     
