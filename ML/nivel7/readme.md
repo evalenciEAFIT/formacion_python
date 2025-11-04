@@ -12,7 +12,7 @@
 
 -----
 
-# **GUÍA COMPLETA Y PROFESIONAL: API RESTful en Python con Flask, SQLite, CRUD, Exportación y Pruebas**  
+# **GUÍA API RESTful en Python con Flask, SQLite, CRUD, Exportación y Pruebas**  
 ### **Flask 2.3+ Compatible – Con Comentarios, Explicaciones Detalladas y Mejores Prácticas**
 
 ---
