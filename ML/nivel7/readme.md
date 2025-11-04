@@ -10,8 +10,6 @@
 [Nivel 6: Guía: Proyecto de Visualización y Prediccióno](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel6) |  
 [Nivel 7: Uso de API, caso práctico](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel7)
 
-Aquí tienes el documento completo y unificado, paso a paso, para crear una API RESTful desde cero usando Flask.
-
 Este documento incluye:
 
   * La explicación de los conceptos y paquetes.
