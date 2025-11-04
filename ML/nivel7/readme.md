@@ -10,343 +10,610 @@
 [Nivel 6: Guía: Proyecto de Visualización y Prediccióno](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel6) |  
 [Nivel 7: Uso de API, caso práctico](https://github.com/evalenciEAFIT/formacion_python/tree/main/ML/nivel7)
 
----
-### 1. El "Por Qué": Paquetes y Arquitectura
+Aquí tienes el documento completo y unificado, paso a paso, para crear una API RESTful desde cero usando Flask.
 
-Antes de escribir código, es fundamental entender por qué elegimos estas herramientas. Esto se alinea con las **buenas prácticas de arquitectura de software**.
+Este documento incluye:
 
-| Paquete | Propósito | ¿Por Qué lo Elegimos? (La Buena Práctica) |
-| :--- | :--- | :--- |
-| **FastAPI** | El Framework de la API | **Rendimiento y Modernidad.** Es un framework ASGI (asíncrono), lo que lo hace extremadamente rápido. <br><br> **Documentación Automática.** Genera documentación interactiva (Swagger/ReDoc) a partir de tu código. <br><br> **Validación de Datos.** Se integra nativamente con Pydantic, forzándote a definir tus modelos de datos y validando todas las peticiones (entrantes y salientes) automáticamente. |
-| **Uvicorn** | El Servidor | **El "Motor" para ASGI.** FastAPI es un framework, pero no puede "correr" por sí solo. Necesita un servidor ASGI (Interfaz de Pasarela de Servidor Asíncrono) para manejar las peticiones HTTP. Uvicorn es el servidor estándar y recomendado para FastAPI. |
-| **Pydantic** | Los Modelos de Datos (Schemas) | **Validación y Serialización.** Es el "guardia de seguridad" de tu API. Define la *forma* (schema) que tus datos JSON deben tener. Si un cliente envía un JSON con campos faltantes o tipos incorrectos, Pydantic lo rechaza automáticamente (con un error 422). También se usa para formatear la *salida* de la API. |
-| **SQLAlchemy** | El ORM (Base de Datos) | **Abstracción y Seguridad.** Es el "traductor" entre tus objetos Python y la base de datos SQL. <br><br> **Portabilidad:** Escribes código Python, y SQLAlchemy lo traduce a SQL. Si hoy usas SQLite y mañana quieres cambiar a PostgreSQL, **no tienes que cambiar tu lógica de código**, solo la URL de conexión. <br><br> **Seguridad:** Previene ataques de **Inyección SQL** porque parametriza todas las consultas. |
+  * La explicación de los conceptos y paquetes.
+  * La estructura de directorios y los comandos para Windows.
+  * El código completo y documentado del backend (API).
+  * Un script para generar datos de prueba.
+  * Dos ejemplos de cómo consumir la API: una página web y un script de Python.
 
 -----
 
-### 🏗️ 2. Estructura y Configuración del Proyecto
+## 🚀 Guía Completa: Creación de una API RESTful con Flask
 
-#### 2.1. Estructura de Archivos
+Este documento te guiará en la creación de una API completa para gestionar "Tareas", usando Flask, Flask-RESTful y Flask-SQLAlchemy.
 
-Usamos una estructura que sigue el principio de **Separación de Responsabilidades (SoC)**.
+-----
+
+### 1\. Conceptos Clave y Paquetes
+
+Antes de escribir código, entiende *por qué* usamos estas herramientas.
+
+#### 📖 Terminología de API
+
+  * **API (Application Programming Interface):** Es un "contrato" o "menú" que un software ofrece a otro. Define las reglas sobre cómo interactuar con él (ej. qué datos enviar, qué datos esperar de vuelta).
+  * **REST (REpresentational State Transfer):** Es un estilo de arquitectura para diseñar APIs. Utiliza los métodos HTTP (`GET`, `POST`, `PUT`, `DELETE`) para interactuar con "Recursos" (en nuestro caso, las "Tareas").
+  * **Endpoint:** Es una URL específica donde la API espera peticiones. En nuestro proyecto, tendremos dos:
+      * `/tareas` (para la lista completa)
+      * `/tareas/<id>` (para una tarea individual)
+  * **JSON (JavaScript Object Notation):** Es el "idioma" estándar que usan las APIs para intercambiar datos. Es ligero y fácil de leer tanto para humanos como para máquinas.
+  * **CORS (Cross-Origin Resource Sharing):** ¡Este es el "CORN" que mencionaste\! Es un mecanismo de seguridad **del navegador**.
+      * **El Problema:** Por defecto, un navegador prohíbe que una página web (ej. `index.html`) solicite datos de una API que está en un "origen" (dominio/puerto) diferente. Tu API corre en `http://127.0.0.1:5000` y tu archivo se abre desde `file:///...`. Son orígenes distintos, por lo que el navegador bloquea la petición.
+      * **La Solución:** Usamos el paquete `Flask-CORS`. Al añadir `CORS(app)` a nuestra API, el servidor le envía una cabecera al navegador que dice: "Está bien, confío en peticiones de cualquier origen. Deja pasar la solicitud".
+
+#### 📦 "Por Qué" y "Para Qué" de los Paquetes
+
+| Paquete | Para Qué (Propósito) | Por Qué lo Elegimos (Justificación) |
+| :--- | :--- | :--- |
+| **Flask** | El Framework de la API | Es el motor central. Recibe peticiones HTTP y envía respuestas. Es ligero, flexible y nos da control total. |
+| **Flask-RESTful** | Capa de API REST | Simplifica la creación de APIs REST. Nos permite definir **Recursos** (clases) y mapea los métodos (`get`, `post`) a los verbos HTTP automáticamente. |
+| **Flask-SQLAlchemy**| ORM (Base de Datos) | Es el "traductor" entre Python y la BBDD. Nos permite definir tablas como clases de Python (`class Tarea`) y evita que escribamos SQL a mano. |
+| **Flask-CORS** | Habilitar CORS | Resuelve el problema de seguridad del navegador, permitiendo que nuestro `index.html` consuma la API. |
+| **requests** | Cliente Python | (No es para la API, sino para el cliente). Es la librería estándar en Python para realizar peticiones HTTP (consumir APIs). |
+
+-----
+
+### 2\. Estructura y Configuración del Proyecto
+
+#### 2.1. Estructura Final de Archivos
+
+Así se verá tu proyecto. Esta estructura separa las responsabilidades (la lógica de la BBDD, la lógica de la API, etc.).
 
 ```
-mi_api_proyecto/
+mi_api_flask/
 ├── app/                  # Núcleo de la aplicación
-│   ├── __init__.py       # (Vacío)
-│   ├── main.py           # Endpoints (rutas HTTP)
-│   ├── crud.py           # Lógica de negocio (C-R-U-D)
-│   ├── models.py         # Modelos de la BBDD (SQLAlchemy)
-│   ├── schemas.py        # Modelos de la API (Pydantic)
-│   └── database.py       # Configuración de la BBDD
+│   ├── __init__.py       # Fábrica de la app (con CORS)
+│   ├── models.py         # Modelos de la BBDD
+│   ├── resources.py      # Endpoints (Lógica de la API)
+│   └── extensions.py     # Instancias (db, api)
 │
-├── data/                 # Datos (ignorado por git)
-│   └── tareas.db         # Nuestra base de datos demo
+├── data/                 # Carpeta para la BBDD
+│   └── tareas.db         # Archivo de la BBDD SQLite
 │
+├── venv/                 # Tu entorno virtual
+│
+├── index.html            # Cliente web (Frontend)
+├── client.py             # Cliente de prueba en Python
+├── seed.py               # Script para generar datos
+│
+├── run.py                # Para iniciar el servidor
 └── requirements.txt      # Dependencias
 ```
 
-  * `main.py` solo habla con `crud.py` y `schemas.py`.
-  * `crud.py` solo habla con `models.py` y `database.py`.
-  * Ningún archivo se preocupa por "cómo" funciona el otro, solo por su "qué".
+#### 2.2. Comandos de Generación (Windows PowerShell)
 
-#### 2.2. Generar Estructura (Comandos)   
-Puedes crear la estructura de directorios y archivos vacíos abriendo una terminal de **PowerShell** y ejecutando estos comandos uno por uno:
+Abre PowerShell, navega a tu carpeta de proyectos y ejecuta:
 
 ```powershell
-# 1. Crea el directorio raíz del proyecto y entra en él
-mkdir mi_api_proyecto
-cd mi_api_proyecto
+# 1. Crea y activa un entorno virtual
+python -m venv venv
+.\venv\Scripts\Activate
 
-# 2. Crea las carpetas 'app' y 'data'
+# 2. Crea la estructura de carpetas y archivos
+mkdir mi_api_flask
+cd mi_api_flask
 mkdir app, data
 
 # 3. Crea los archivos Python vacíos
-# 'New-Item -ItemType File' es el equivalente a 'touch'
-New-Item -ItemType File app\__init__.py
-New-Item -ItemType File app\main.py
-New-Item -ItemType File app\crud.py
-New-Item -ItemType File app\models.py
-New-Item -ItemType File app\schemas.py
-New-Item -ItemType File app\database.py
+New-Item -ItemType File run.py, requirements.txt, seed.py, client.py
+New-Item -ItemType File app\__init__.py, app\models.py, app\resources.py, app\extensions.py
 
-# 4. Crea el archivo de dependencias (vacío por ahora)
-New-Item -ItemType File requirements.txt
+# 4. Crea el cliente web vacío
+New-Item -ItemType File index.html
 ```
 
-**Alternativa (Si usas la terminal clásica `CMD.exe`):**
-
-Si prefieres usar el "Símbolo del sistema" (CMD) en lugar de PowerShell, los comandos para crear archivos vacíos son ligeramente diferentes:
-
-```cmd
-:: 1. Crear directorios y entrar
-mkdir mi_api_proyecto
-cd mi_api_proyecto
-mkdir app
-mkdir data
-
-:: 2. Crear archivos vacíos (usando 'type nul > ...')
-type nul > app\__init__.py
-type nul > app\main.py
-type nul > app\crud.py
-type nul > app\models.py
-type nul > app\schemas.py
-type nul > app\database.py
-type nul > requirements.txt
-```
 -----
 
-#### 2.3. Dependencias
+### 3\. Dependencias
+
+Copia esto en tu archivo `requirements.txt`.
 
 **Archivo: `requirements.txt`**
 
-```
-fastapi
-uvicorn[standard]
-sqlalchemy
+```txt
+Flask
+Flask-RESTful
+Flask-SQLAlchemy
+Flask-CORS
+requests
 ```
 
-Instálalas con: `pip install -r requirements.txt`
+Ahora, instala todo (asegúrate de tener tu `(venv)` activado):
+
+```powershell
+(venv) > pip install -r requirements.txt
+```
 
 -----
 
-### 💻 3. El Código Explicado (con "Más Descripción")
+### 4\. El Corazón de la API (El Backend)
 
-#### 3.1. `app/database.py` (La Conexión)
+Aquí está el código de cada archivo en tu carpeta `app/`.
+
+#### `app/extensions.py`
+
+*Propósito: Evitar importaciones circulares. Solo creamos las instancias aquí.*
 
 ```python
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from flask_sqlalchemy import SQLAlchemy
+from flask_restful import Api
 
-# 1. La URL de nuestra BBDD demo.
-SQLALCHEMY_DATABASE_URL = "sqlite:///../data/tareas.db"
-
-# 2. El "Engine" es el punto de entrada principal a la BBDD.
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, 
-    # Requerido solo para SQLite para permitir múltiples hilos
-    connect_args={"check_same_thread": False}
-)
-
-# 3. La "Session" es la "conversación" con la BBDD.
-# Es la que usamos en crud.py para hacer .add(), .commit(), etc.
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# 4. La "Base" es la clase de la que heredarán nuestros modelos
-# (las tablas) en models.py.
-Base = declarative_base()
+# Creamos las instancias sin vincularlas a una app todavía.
+# Esto permite que otros módulos las importen de forma segura.
+db = SQLAlchemy()
+api = Api()
 ```
 
-#### 3.2. `app/models.py` (Las Tablas de la BBDD)
+#### `app/models.py`
+
+*Propósito: Definir la estructura de las tablas de la base de datos.*
 
 ```python
-from sqlalchemy import Boolean, Column, Integer, String
-from .database import Base
+from .extensions import db
 
-# Este es el modelo de SQLAlchemy.
-# Representa la TABLA "tareas" en nuestra base de datos.
-class Tarea(Base):
+# db.Model es la clase base para todos los modelos de Flask-SQLAlchemy
+class Tarea(db.Model):
+    # Nombre de la tabla en la base de datos
     __tablename__ = "tareas"
+    
+    # Definición de las columnas
+    id = db.Column(db.Integer, primary_key=True)
+    titulo = db.Column(db.String(255), nullable=False) # No puede estar vacío
+    descripcion = db.Column(db.String, nullable=True) # Puede estar vacío
+    completada = db.Column(db.Boolean, default=False) # Valor por defecto es Falso
 
-    id = Column(Integer, primary_key=True, index=True)
-    titulo = Column(String, index=True)
-    descripcion = Column(String, nullable=True)
-    completada = Column(Boolean, default=False)
+    def to_dict(self):
+        """
+        Función helper (ayudante).
+        Convierte el objeto Tarea (Python) a un diccionario.
+        Esto es crucial para que Flask-RESTful pueda convertirlo a JSON.
+        """
+        return {
+            'id': self.id,
+            'titulo': self.titulo,
+            'descripcion': self.descripcion,
+            'completada': self.completada
+        }
 ```
 
-#### 3.3. `app/schemas.py` (Los JSON de la API)
+#### `app/resources.py`
+
+*Propósito: Definir la lógica de los endpoints (qué hacer en `GET`, `POST`, `PUT`, `DELETE`).*
 
 ```python
-from pydantic import BaseModel
-from typing import Optional
+from flask_restful import Resource, reqparse
+from .models import Tarea
+from .extensions import db
 
-# Este es el modelo de Pydantic.
-# Representa el JSON que entra y sale de la API.
+# 1. Parser de Peticiones (reqparse)
+# Es el "guardia de seguridad" que valida los datos JSON que entran.
+parser = reqparse.RequestParser()
+parser.add_argument('titulo', type=str, required=True, help="El título es obligatorio")
+parser.add_argument('descripcion', type=str, required=False, default="")
+parser.add_argument('completada', type=bool, required=False, default=False)
 
-class TareaBase(BaseModel):
-    """Schema base, comparte los campos comunes."""
-    titulo: str
-    descripcion: Optional[str] = None
-    completada: bool = False
 
-class TareaCreate(TareaBase):
-    """Schema para la CREACIÓN (entrada). No tiene ID."""
-    pass
+# 2. Recurso para un Item Específico (GET, PUT, DELETE)
+# Maneja las peticiones a: /tareas/<id>
+class TareaResource(Resource):
+    
+    def get(self, tarea_id):
+        """Maneja el método GET /tareas/<id>"""
+        tarea = Tarea.query.get(tarea_id)
+        if not tarea:
+            return {'mensaje': 'Tarea no encontrada'}, 404
+        return tarea.to_dict(), 200 # 200 OK
 
-class Tarea(TareaBase):
-    """Schema para la LECTURA (salida). Sí tiene ID."""
-    id: int
+    def put(self, tarea_id):
+        """Maneja el método PUT /tareas/<id> (Actualizar)"""
+        args = parser.parse_args() # Valida la entrada
+        tarea = Tarea.query.get(tarea_id)
+        if not tarea:
+            return {'mensaje': 'Tarea no encontrada'}, 404
+        
+        # Actualiza los campos
+        tarea.titulo = args['titulo']
+        tarea.descripcion = args['descripcion']
+        tarea.completada = args['completada']
+        
+        db.session.commit() # Guarda en BBDD
+        return tarea.to_dict(), 200 # 200 OK
 
-    class Config:
-        orm_mode = True # Le dice a Pydantic que puede leer
-                        # datos desde un modelo ORM (SQLAlchemy)
+    def delete(self, tarea_id):
+        """Maneja el método DELETE /tareas/<id> (Borrar)"""
+        tarea = Tarea.query.get(tarea_id)
+        if not tarea:
+            return {'mensaje': 'Tarea no encontrada'}, 404
+        
+        db.session.delete(tarea)
+        db.session.commit()
+        return '', 204 # 204 No Content
+
+
+# 3. Recurso para la Colección (Lista) (GET, POST)
+# Maneja las peticiones a: /tareas
+class TareaListResource(Resource):
+    
+    def get(self):
+        """Maneja el método GET /tareas (Obtener todas)"""
+        tareas = Tarea.query.all()
+        return [t.to_dict() for t in tareas], 200
+
+    def post(self):
+        """Maneja el método POST /tareas (Crear una nueva)"""
+        args = parser.parse_args() # Valida la entrada
+        
+        nueva_tarea = Tarea(
+            titulo=args['titulo'],
+            descripcion=args['descripcion'],
+            completada=args['completada']
+        )
+        
+        db.session.add(nueva_tarea)
+        db.session.commit()
+        
+        return nueva_tarea.to_dict(), 201 # 201 Created
 ```
 
-#### 3.4. `app/crud.py` (La Lógica de Negocio)
+#### `app/__init__.py`
+
+*Propósito: Usar el "Patrón de Fábrica" para crear y configurar la aplicación Flask.*
 
 ```python
-from sqlalchemy.orm import Session
-from . import models, schemas
+import os
+from flask import Flask
+from flask_cors import CORS  # Importar CORS
+from .extensions import db, api 
+from .resources import TareaResource, TareaListResource
 
-# Esta es la lógica pura. No sabe nada de HTTP, solo de Python y BBDD.
-# Recibe una sesión (db) y los datos (schemas).
-
-def get_tarea(db: Session, tarea_id: int):
-    """Obtiene una Tarea por su ID."""
-    return db.query(models.Tarea).filter(models.Tarea.id == tarea_id).first()
-
-def get_tareas(db: Session, skip: int = 0, limit: int = 100):
-    """Obtiene una lista paginada de Tareas."""
-    return db.query(models.Tarea).offset(skip).limit(limit).all()
-
-def create_tarea(db: Session, tarea: schemas.TareaCreate):
-    """Crea una Tarea en la BBDD."""
-    # 1. Convierte el schema (Pydantic) a un modelo (SQLAlchemy)
-    db_tarea = models.Tarea(**tarea.dict())
-    # 2. Añade, confirma y refresca
-    db.add(db_tarea)
-    db.commit()
-    db.refresh(db_tarea)
-    return db_tarea
-
-def update_tarea(db: Session, tarea_id: int, tarea: schemas.TareaCreate):
-    """Actualiza una Tarea (método PUT)."""
-    db_tarea = get_tarea(db, tarea_id)
-    if db_tarea:
-        db_tarea.titulo = tarea.titulo
-        db_tarea.descripcion = tarea.descripcion
-        db_tarea.completada = tarea.completada
-        db.commit()
-        db.refresh(db_tarea)
-    return db_tarea
-
-def delete_tarea(db: Session, tarea_id: int):
-    """Elimina una Tarea."""
-    db_tarea = get_tarea(db, tarea_id)
-    if db_tarea:
-        db.delete(db_tarea)
-        db.commit()
-    return db_tarea # Retorna el objeto borrado (o None)
-```
-
-#### 3.5. `app/main.py` (El Controlador HTTP)
-
-```python
-from fastapi import FastAPI, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from typing import List
-
-from . import crud, models, schemas
-from .database import SessionLocal, engine
-
-# Crea las tablas en la BBDD (si no existen)
-models.Base.metadata.create_all(bind=engine)
-
-app = FastAPI(title="API de Tareas v3")
-
-# --- Inyección de Dependencias ---
-# Esta es una buena práctica. FastAPI se encarga de:
-# 1. Llamar a esta función en cada petición.
-# 2. "Inyectar" el valor (db) en el endpoint (ej. `db: Session = Depends(get_db)`)
-# 3. Ejecutar el 'finally' cuando la petición termina.
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close() # Cierra la sesión, liberando la conexión.
-
-# --- Endpoints ---
-
-@app.post("/tareas/", response_model=schemas.Tarea, status_code=status.HTTP_201_CREATED)
-def crear_nueva_tarea(tarea: schemas.TareaCreate, db: Session = Depends(get_db)):
+def create_app():
     """
-    POST (Crear):
-    - Body: Recibe un JSON que coincide con TareaCreate.
-    - Respuesta: Devuelve un JSON que coincide con Tarea (con ID) y un 201.
+    Función Fábrica (Factory Pattern)
     """
-    return crud.create_tarea(db=db, tarea=tarea)
+    app = Flask(__name__)
+    
+    # Habilitar CORS para permitir peticiones desde el frontend
+    CORS(app)
+    
+    # --- Configuración de la Base de Datos (SQLite) ---
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    db_path = os.path.join(basedir, '..', 'data', 'tareas.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-@app.get("/tareas/{tarea_id}", response_model=schemas.Tarea)
-def leer_una_tarea(tarea_id: int, db: Session = Depends(get_db)):
-    """
-    GET (Leer Uno):
-    - Path: Recibe el ID desde la URL.
-    - Respuesta: Devuelve la Tarea o un 404.
-    """
-    db_tarea = crud.get_tarea(db, tarea_id=tarea_id)
-    if db_tarea is None:
-        raise HTTPException(status_code=404, detail="Tarea no encontrada")
-    return db_tarea
+    # --- Inicializar Extensiones ---
+    db.init_app(app)
+    api.init_app(app)
 
-@app.put("/tareas/{tarea_id}", response_model=schemas.Tarea)
-def actualizar_una_tarea(tarea_id: int, tarea: schemas.TareaCreate, db: Session = Depends(get_db)):
-    """
-    PUT (Actualizar/Reemplazar):
-    - Path: ID del recurso a reemplazar.
-    - Body: Datos completos del recurso (TareaCreate).
-    - Respuesta: Devuelve la Tarea actualizada o un 404.
-    """
-    db_tarea = crud.update_tarea(db, tarea_id=tarea_id, tarea=tarea)
-    if db_tarea is None:
-        raise HTTPException(status_code=404, detail="Tarea no encontrada")
-    return db_tarea
+    # --- REGISTRO DE ENDPOINTS ---
+    # Conecta las clases (Recursos) a las URLs (Endpoints)
+    
+    # Endpoint: /tareas
+    api.add_resource(TareaListResource, '/tareas')
+    
+    # Endpoint: /tareas/<id>
+    api.add_resource(TareaResource, '/tareas/<int:tarea_id>')
 
-@app.delete("/tareas/{tarea_id}", status_code=status.HTTP_204_NO_CONTENT)
-def borrar_una_tarea(tarea_id: int, db: Session = Depends(get_db)):
-    """
-    DELETE (Borrar):
-    - Path: ID del recurso a borrar.
-    - Respuesta: Devuelve un 204 (sin contenido) o un 404.
-    """
-    db_tarea = crud.delete_tarea(db, tarea_id=tarea_id)
-    if db_tarea is None:
-        raise HTTPException(status_code=404, detail="Tarea no encontrada")
-    # No se devuelve contenido, solo el código 204
-    return
+    return app
 ```
 
 -----
 
-### 🚦 4. Guía Detallada de Códigos de Estado HTTP
+### 5\. El Servidor
 
-Estos códigos son la "respuesta emocional" de la API. Le dicen al cliente qué pasó.
+Este es el script que ejecutas para iniciar la API.
 
-#### 🟢 Familia 2xx: Éxito (Todo salió bien)
+**Archivo: `run.py`**
+
+```python
+from app import create_app
+from app.extensions import db
+
+# 1. Crea la aplicación usando la fábrica
+app = create_app()
+
+# 2. Entra en el "contexto" de la aplicación
+#    Esto es necesario para que Flask-SQLAlchemy sepa 
+#    a qué base de datos conectarse.
+with app.app_context():
+    # 3. Crea todas las tablas definidas en models.py (si no existen)
+    db.create_all()
+
+# 4. Inicia el servidor de desarrollo
+if __name__ == '__main__':
+    # debug=True activa el reinicio automático y los mensajes de error
+    app.run(debug=True)
+```
+
+-----
+
+### 6\. Explicación: Métodos HTTP y Códigos de Estado
+
+#### Métodos HTTP (Verbos)
+
+| Verbo | Acción | Endpoint de Ejemplo | Método en `resources.py` |
+| :--- | :--- | :--- | :--- |
+| **`GET`** | **Leer** | `GET /tareas/1` | `get()` |
+| **`POST`** | **Crear** | `POST /tareas` | `post()` |
+| **`PUT`** | **Actualizar/Reemplazar** | `PUT /tareas/1` | `put()` |
+| **`DELETE`**| **Borrar** | `DELETE /tareas/1` | `delete()` |
+
+#### Códigos de Estado (Respuesta)
 
 | Código | Nombre | Cuándo lo Usamos en Nuestra API |
 | :--- | :--- | :--- |
-| **`200 OK`** | OK | Respuesta estándar para peticiones exitosas que devuelven datos. <br> *(Ej: `GET /tareas/1` y `PUT /tareas/1`)* |
-| **`201 Created`**| Creado | Se usa específicamente después de un `POST` exitoso que creó un nuevo recurso. <br> *(Ej: `POST /tareas/`)* |
-| **`204 No Content`** | Sin Contenido | Se usa cuando la acción fue exitosa, pero no hay nada que devolver en el cuerpo. <br> *(Ej: `DELETE /tareas/1`)* |
-
-#### 🟡 Familia 4xx: Errores del Cliente (Tú, el cliente, te equivocaste)
-
-| Código | Nombre | Causa Común en Nuestra API |
-| :--- | :--- | :--- |
-| **`404 Not Found`**| No Encontrado | El cliente pidió un recurso que no existe. <br> *(Ej: `GET /tareas/999`)*. <br> **Nosotros lo lanzamos** con `raise HTTPException(status_code=404)`. |
-| **`422 Unprocessable Entity`** | Entidad No Procesable | **¡El más importante de FastAPI\!** El JSON enviado estaba bien formado, pero falló la validación de Pydantic. <br> *(Ej: `POST /tareas/` sin el campo `titulo`, o `completada: "hola"`)*. <br> **FastAPI/Pydantic lo lanzan automáticamente.** |
-| **`401 Unauthorized`** | No Autorizado | El cliente no ha proporcionado credenciales (API Key, Token) para un endpoint protegido. (Aún no lo implementamos). |
-| **`403 Forbidden`** | Prohibido | El cliente *sí* proporcionó credenciales, pero estas no tienen permiso para realizar esa acción. (Ej. un usuario "invitado" intentando hacer `DELETE`). |
-| **`400 Bad Request`** | Petición Incorrecta | Error genérico. Usualmente significa que el JSON estaba mal formado (ej. una coma faltante) y el servidor ni siquiera pudo *intentar* validarlo. |
-
-#### 🔴 Familia 5xx: Errores del Servidor (Nosotros, la API, nos equivocamos)
-
-| Código | Nombre | Causa Común en Nuestra API |
-| :--- | :--- | :--- |
-| **`500 Internal Server Error`** | Error Interno del Servidor | **El error que debes evitar.** Significa que hubo un bug en nuestro código (ej. `crud.py`), la BBDD se desconectó, o algo inesperado falló. |
-| **`503 Service Unavailable`** | Servicio No Disponible | El servidor está vivo, pero temporalmente sobrecargado o en mantenimiento. |
+| **`200 OK`** | OK | Respuesta estándar para `GET` y `PUT` exitosos. |
+| **`201 Created`**| Creado | Respuesta estándar para un `POST` exitoso (creó un recurso). |
+| **`204 No Content`** | Sin Contenido | Respuesta estándar para un `DELETE` exitoso (no hay nada que devolver).|
+| **`400 Bad Request`**| Petición Incorrecta | `reqparse` lo devuelve automáticamente si faltan datos (ej. no envías `titulo`).|
+| **`404 Not Found`** | No Encontrado | Lo devolvemos si se pide un ID que no existe (ej. `GET /tareas/999`).|
 
 -----
 
-### 🚀 5. Ejecutar y Probar
+### 7\. Generación de Datos de Prueba
 
-1.  Desde la carpeta raíz (`mi_api_proyecto/`):
-    ```bash
-    uvicorn app.main:app --reload
-    ```
-2.  Abre tu navegador en: **`http://127.0.0.1:8000/docs`**
-3.  Usa la interfaz de Swagger para probar tus endpoints `POST`, `GET`, `PUT` y `DELETE`. Intenta crear una tarea, luego obtenerla, actualizarla y finalmente borrarla.
+Crea este archivo para llenar tu BBDD con datos de ejemplo.
 
-¿Te gustaría que implementemos el método `PATCH` para actualizaciones parciales, que es un poco más complejo que `PUT`, o prefieres añadir autenticación básica?
+**Archivo: `seed.py`**
+
+```python
+from app import create_app
+from app.extensions import db
+from app.models import Tarea
+
+# 1. Crea una instancia de la app para tener el contexto
+app = create_app()
+
+# 2. 'app_context()' conecta el script a la BBDD
+with app.app_context():
+    
+    # 3. Borra todos los datos antiguos
+    print("Eliminando datos antiguos...")
+    db.session.query(Tarea).delete()
+    
+    # 4. Crea los nuevos objetos Tarea
+    print("Creando nuevos datos de ejemplo...")
+    t1 = Tarea(titulo="Comprar leche", descripcion="Recordar que sea deslactosada")
+    t2 = Tarea(titulo="Estudiar API con Flask", completada=True)
+    t3 = Tarea(titulo="Llamar al cliente")
+    
+    # 5. Añade los objetos a la sesión y guarda
+    db.session.add_all([t1, t2, t3])
+    db.session.commit()
+    
+    print("¡Datos de ejemplo creados exitosamente!")
+```
+
+**Para ejecutarlo** (con `(venv)` activado):
+
+```powershell
+(venv) > python seed.py
+```
+
+-----
+
+### 8\. Los Clientes (Consumiendo la API)
+
+Aquí tienes dos formas de usar tu API.
+
+#### 🌐 8.1. Ejemplo 1: Cliente Web (HTML + JavaScript)
+
+**Archivo: `index.html`**
+
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cliente de API de Tareas</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #f4f7f6; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        header { background: #007bff; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+        h1 { margin: 0; }
+        main { padding: 20px; }
+        ul#lista-tareas { list-style: none; padding: 0; }
+        ul#lista-tareas li { display: flex; align-items: center; justify-content: space-between; padding: 15px; border-bottom: 1px solid #eee; }
+        .tarea-info.completada { text-decoration: line-through; color: #888; }
+        .tarea-acciones button { margin-left: 8px; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
+        .btn-completar { background-color: #28a745; color: white; }
+        .btn-borrar { background-color: #dc3545; color: white; }
+        form#form-nueva-tarea { display: flex; gap: 10px; margin-top: 20px; }
+        form#form-nueva-tarea input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        form#form-nueva-tarea button { padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header><h1>Gestor de Tareas (API con Flask)</h1></header>
+        <main>
+            <ul id="lista-tareas"></ul>
+            <hr>
+            <h3>Nueva Tarea</h3>
+            <form id="form-nueva-tarea">
+                <input type="text" id="input-titulo" placeholder="Título..." required>
+                <input type="text" id="input-descripcion" placeholder="Descripción...">
+                <button type="submit">Crear</button>
+            </form>
+        </main>
+    </div>
+
+    <script>
+        // URL de la API
+        const API_URL = 'http://127.0.0.1:5000/tareas';
+        
+        // Elementos del DOM
+        const listaTareas = document.getElementById('lista-tareas');
+        const formNuevaTarea = document.getElementById('form-nueva-tarea');
+        const inputTitulo = document.getElementById('input-titulo');
+        const inputDescripcion = document.getElementById('input-descripcion');
+
+        // 1. OBTENER Y MOSTRAR TAREAS (GET)
+        async function cargarTareas() {
+            const response = await fetch(API_URL);
+            const tareas = await response.json();
+            listaTareas.innerHTML = ''; // Limpia la lista
+            tareas.forEach(tarea => {
+                const li = document.createElement('li');
+                li.dataset.id = tarea.id;
+                li.dataset.titulo = tarea.titulo;
+                li.dataset.descripcion = tarea.descripcion || '';
+                li.dataset.completada = tarea.completada;
+                li.innerHTML = `
+                    <div class="tarea-info ${tarea.completada ? 'completada' : ''}">
+                        <strong>${tarea.titulo}</strong>
+                    </div>
+                    <div class="tarea-acciones">
+                        <button class="btn-completar" onclick="toggleCompletar(${tarea.id})">${tarea.completada ? 'Deshacer' : 'Completar'}</button>
+                        <button class="btn-borrar" onclick="borrarTarea(${tarea.id})">Borrar</button>
+                    </div>
+                `;
+                listaTareas.appendChild(li);
+            });
+        }
+
+        // 2. CREAR NUEVA TAREA (POST)
+        formNuevaTarea.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    titulo: inputTitulo.value,
+                    descripcion: inputDescripcion.value,
+                    completada: false
+                }),
+            });
+            if (response.status === 201) {
+                inputTitulo.value = '';
+                inputDescripcion.value = '';
+                cargarTareas();
+            }
+        });
+
+        // 3. BORRAR TAREA (DELETE)
+        async function borrarTarea(id) {
+            if (!confirm('¿Seguro?')) return;
+            const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            if (response.status === 204) cargarTareas();
+        }
+
+        // 4. ACTUALIZAR TAREA (PUT)
+        async function toggleCompletar(id) {
+            const tareaLi = document.querySelector(`li[data-id="${id}"]`);
+            const nuevaCompletada = !(tareaLi.dataset.completada === 'true'); 
+            const response = await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    titulo: tareaLi.dataset.titulo,
+                    descripcion: tareaLi.dataset.descripcion,
+                    completada: nuevaCompletada
+                })
+            });
+            if (response.status === 200) cargarTareas();
+        }
+        
+        // Carga inicial
+        document.addEventListener('DOMContentLoaded', cargarTareas);
+    </script>
+</body>
+</html>
+```
+
+#### 🐍 8.2. Ejemplo 2: Cliente Python (`requests`)
+
+**Archivo: `client.py`**
+
+```python
+import requests
+
+# URL base de la API
+BASE_URL = "http://127.0.0.1:5000/tareas"
+
+def print_tarea(tarea):
+    """Función helper para imprimir una tarea formateada."""
+    estado = "Completada" if tarea.get('completada') else "Pendiente"
+    print(f"  ID: {tarea.get('id')} | Título: {tarea.get('titulo')} ({estado})")
+
+def main_loop():
+    print("--- Cliente de API en Python ---")
+    
+    # 1. CREAR una nueva tarea (POST)
+    print("\n1. Creando nueva tarea (POST)...")
+    nueva_tarea_data = {"titulo": "Hacer demo en Python"}
+    try:
+        response = requests.post(BASE_URL, json=nueva_tarea_data)
+        if response.status_code == 201:
+            tarea_creada = response.json()
+            print("¡Tarea creada!")
+            print_tarea(tarea_creada)
+            tarea_id = tarea_creada.get('id')
+        else:
+            print(f"Error al crear: {response.status_code}")
+            return
+    except requests.exceptions.ConnectionError:
+        print("\n[ERROR] No se pudo conectar a la API.")
+        print("Asegúrate de que el servidor (python run.py) esté corriendo.")
+        return
+        
+    # 2. OBTENER todas las tareas (GET)
+    print("\n2. Obteniendo lista de tareas (GET)...")
+    response = requests.get(BASE_URL)
+    tareas = response.json()
+    print(f"Total de tareas: {len(tareas)}")
+    for tarea in tareas:
+        print_tarea(tarea)
+        
+    # 3. ACTUALIZAR la tarea (PUT)
+    print(f"\n3. Actualizando tarea ID {tarea_id} (PUT)...")
+    update_data = {"titulo": "Hacer demo en Python", "completada": True}
+    response = requests.put(f"{BASE_URL}/{tarea_id}", json=update_data)
+    if response.status_code == 200:
+        print("¡Tarea actualizada!")
+        print_tarea(response.json())
+
+    # 4. BORRAR la tarea (DELETE)
+    print(f"\n4. Borrando tarea ID {tarea_id} (DELETE)...")
+    response = requests.delete(f"{BASE_URL}/{tarea_id}")
+    if response.status_code == 204:
+        print("¡Tarea borrada!")
+        
+    # 5. VERIFICAR
+    print("\n5. Verificando la lista final...")
+    response = requests.get(BASE_URL)
+    tareas = response.json()
+    print(f"Total de tareas ahora: {len(tareas)}")
+    for tarea in tareas:
+        print_tarea(tarea)
+
+if __name__ == "__main__":
+    main_loop()
+```
+
+-----
+
+### 9\. Resumen de Ejecución
+
+1.  **Terminal 1 (Servidor API):**
+
+      * Activa tu entorno: `.\venv\Scripts\Activate`
+      * *(Opcional)* Genera los datos: `python seed.py`
+      * **Inicia la API:** `python run.py`
+      * *Deja esta terminal abierta. Verás los logs (GET, POST, etc.) aquí.*
+
+2.  **Terminal 2 (Cliente Python):**
+
+      * Abre una **nueva terminal**.
+      * Activa el mismo entorno: `.\venv\Scripts\Activate`
+      * **Ejecuta el cliente:** `python client.py`
+      * *Verás la salida del script creando, leyendo, actualizando y borrando tareas.*
+
+3.  **Navegador Web (Cliente Web):**
+
+      * Ve a la carpeta `mi_api_flask` en tu explorador de archivos.
+      * Haz doble clic en `index.html`.
+      * *La página se abrirá y podrás interactuar con la API (crear, borrar, etc.) desde tu navegador.*
