@@ -1,42 +1,4 @@
 # 📑 **Guía Completa: Sistema de Monitoreo de Represas con Python**  
-**Autor**: Edi  
-**Fecha**: 18 de noviembre de 2025  
-**Versión**: 2.0.0  
-**Entorno**: Windows + Python 3.10+ + entorno virtual (venv)
-
----
-
-## 🎯 **Objetivo del Documento**
-
-Proporcionar una guía paso a paso, **desde cero**, para crear un sistema de monitoreo de represas con Python, siguiendo buenas prácticas de ingeniería de software y ciencia de datos.
-
-Este sistema incluye:
-- ✅ Gestión de datos desde múltiples fuentes (CSV, Excel, APIs, bases de datos)
-- ✅ API REST para integración con otros sistemas
-- ✅ Dashboard interactivo para operarios
-- ✅ Generación automática de informes en PDF
-- ✅ Exportación de datos para análisis externo
-- ✅ Modelos de machine learning para predicción preventiva
-
----
-
-## 📦 **Entregables Finales**
-
-Al completar esta guía, tendrás:
-
-| Componente | Tecnología | Estado |
-|-----------|------------|--------|
-| 🛠️ Entorno de desarrollo | `venv` + `setup_project.py` | Listo |
-| 🗃️ Gestor de bases de datos | PostgreSQL, Oracle (thin mode), SQLite | Listo |
-| 📥 Ingestión de datos | `pandas` + validación integrada | Listo |
-| 📊 Dashboard interactivo | Streamlit | Listo |
-| 📄 Informes PDF | Jinja2 + WeasyPrint | Listo |
-| 🚀 Despliegue en producción | Docker + docker-compose | Listo |
-| 📈 Predicción con ML | Modelos lineales, Random Forest | Listo |
-| 🧪 Pruebas automatizadas | `pytest` + cobertura >90% | Listo |
-| 📚 Documentación profesional | PDF + código autodocumentado | Listo |
-
----
 
 # 🔁 **Fase 1: Inicialización del Proyecto**
 
@@ -48,19 +10,23 @@ Guarda el siguiente código como `setup_project.py` **en tu escritorio** (o cual
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-setup_project.py - Versión 2.0.0
+setup_project.py - Versión 2.2.0
 
-Script de inicialización automática para proyectos de monitoreo de infraestructura crítica.
+Script de inicialización automática para sistemas de monitoreo de infraestructura crítica
+(ej. represas, presas de relaves, estructuras hidráulicas).
 
 Características:
-- Crea estructura de directorios estandarizada
-- Genera entorno virtual (venv) aislado
-- Instala dependencias esenciales
-- Configura variables de entorno seguras
-- Totalmente compatible con Windows
+- Crea estructura modular y escalable (src/, data/, tests/, etc.)
+- Genera entorno virtual aislado (venv)
+- Instala dependencias esenciales con justificación técnica
+- Configura plantilla segura de variables de entorno (.env.example)
+- Compatible con Windows, Linux y macOS
+- Robusto frente a advertencias no críticas de pip
 
 Ejecución:
-    python setup_project.py dam-monitoring-system
+    py setup_project.py nombre-del-proyecto
+Ejemplo:
+    py setup_project.py dam-monitoring-p1
 """
 import os
 import sys
@@ -68,87 +34,107 @@ import subprocess
 import argparse
 from pathlib import Path
 
+
 def create_project_structure(project_name: str) -> Path:
     """Crea la estructura de directorios del proyecto."""
     base = Path(project_name).resolve()
-    print(f"📁 Creando estructura en: {base}")
+    print(f"[INFO] Creando estructura en: {base}")
 
-    # Directorios esenciales
     dir_tree = [
         base,
-        base / "data" / "raw",
-        base / "data" / "processed",
+        base / "data" / "raw",          # Datos crudos: CSV, logs SCADA, sensores
+        base / "data" / "processed",    # Datos limpios y listos para modelos/API
         base / "src",
-        base / "src" / "config",
-        base / "src" / "data",
-        base / "src" / "ml",
-        base / "src" / "api",
-        base / "src" / "dashboard",
-        base / "src" / "reports",
-        base / "tests",
-        base / "notebooks",
-        base / "docs",
-        base / "models",
-        base / "docker",
+        base / "src" / "config",        # Configuración (paths, logs, settings)
+        base / "src" / "data",          # Ingesta, limpieza, transformación
+        base / "src" / "ml",            # Modelos de ML: anomalías, predicción
+        base / "src" / "api",           # API REST (FastAPI)
+        base / "src" / "dashboard",     # Interfaz web interactiva (Streamlit)
+        base / "src" / "reports",       # Generación de reportes técnicos (PDF/HTML)
+        base / "tests",                 # Pruebas unitarias e integración
+        base / "notebooks",             # Exploración (solo desarrollo)
+        base / "docs",                  # Documentación técnica y de usuario
+        base / "models",                # Modelos entrenados (joblib, ONNX)
+        base / "docker",                # Opcional: configuración para contenedores
     ]
 
-    # Crear directorios y __init__.py
+    # Crear directorios y __init__.py (módulos explícitos)
     for directory in dir_tree:
         directory.mkdir(parents=True, exist_ok=True)
         (directory / "__init__.py").touch(exist_ok=True)
 
-    # src/__init__.py - imports limpios
+    # Módulo raíz: imports explícitos y limpios
     (base / "src" / "__init__.py").write_text('''"""
-Módulo raíz del proyecto de monitoreo de represas.
+Módulo raíz del sistema de monitoreo de represas.
 
 Permite:
     from src import config, data, ml, api, dashboard, reports
 """
 from . import config, data, ml, api, dashboard, reports
-''')
+''', encoding="utf-8")
 
-    # requirements.txt
+    # requirements.txt — con justificación técnica integrada
     requirements = [
-        "# Core",
-        "pandas>=2.0.0",
-        "numpy>=1.24.0",
+        "# ==================================================",
+        "# CORE: Procesamiento estructurado y numérico",
+        "# ==================================================",
+        "pandas",        # Series temporales (sensores: nivel, presión, temperatura)",
+        "numpy",         # Operaciones eficientes sobre arrays",
         "",
-        "# Bases de datos",
-        "psycopg2-binary>=2.9.0",    # PostgreSQL
-        "oracledb>=2.0.0",           # Oracle (thin mode)
+        "# ==================================================",
+        "# BASES DE DATOS: Conexión a sistemas operativos",
+        "# ==================================================",
+        "psycopg2-binary",    # PostgreSQL (históricos, eventos, mantenimiento)",
+        "oracledb",           # Oracle en modo 'thin' (SCADA industrial)",
         "",
-        "# APIs y web",
-        "fastapi>=0.100.0",
-        "uvicorn>=0.23.0",
-        "streamlit>=1.30.0",
-        "requests>=2.31.0",
+        "# ==================================================",
+        "# APIs Y SERVICIOS WEB",
+        "# ==================================================",
+        "fastapi",       # API REST moderna, con validación automática (Pydantic)",
+        "uvicorn",       # Servidor ASGI de alto rendimiento",
+        "streamlit",     # Dashboard interactivo para ingenieros y operarios",
+        "requests",      # Integración con APIs externas (meteorología, alertas)",
         "",
-        "# Visualización",
-        "plotly>=5.18.0",
-        "matplotlib>=3.7.0",
+        "# ==================================================",
+        "# VISUALIZACIÓN",
+        "# ==================================================",
+        "plotly",        # Gráficos interactivos (tendencias, umbrales, alertas)",
+        "matplotlib",    # Figuras para reportes técnicos e impresión",
         "",
-        "# Documentos",
-        "jinja2>=3.1.0",
-        "weasyprint>=60.0",
+        "# ==================================================",
+        "# DOCUMENTOS TÉCNICOS",
+        "# ==================================================",
+        "jinja2",        # Plantillas HTML/Markdown para reportes",
+        "weasyprint",    # Generación de PDF con estilos (cumplimiento normativo)",
         "",
-        "# Machine Learning",
-        "scikit-learn>=1.3.0",
-        "# tensorflow>=2.13.0",      # Opcional: descomentar si se usa LSTM
+        "# ==================================================",
+        "# MACHINE LEARNING",
+        "# ==================================================",
+        "scikit-learn",  # Modelos interpretables: Isolation Forest, Random Forest",
+        "# tensorflow",    # Opcional: LSTM para pronóstico dinámico (descomentar si se usa)",
         "",
-        "# Utilidades",
-        "python-dotenv>=1.0.0",
-        "pydantic>=2.0.0",
-        "openpyxl>=3.1.0",
+        "# ==================================================",
+        "# UTILIDADES Y SEGURIDAD",
+        "# ==================================================",
+        "python-dotenv", # Gestión segura de credenciales (.env)",
+        "pydantic",      # Validación de modelos de datos (Represa, Sensor, Lectura)",
+        "openpyxl",      # Lectura de formatos Excel (usados en inspecciones de campo)",
         "",
-        "# Pruebas",
-        "pytest>=7.4.0",
-        "pytest-cov>=4.1.0",
+        "# ==================================================",
+        "# CALIDAD Y PRUEBAS",
+        "# ==================================================",
+        "pytest",        # Ejecución de pruebas automatizadas",
+        "pytest-cov",    # Medición de cobertura (requisito para sistemas seguros)",
     ]
-    (base / "requirements.txt").write_text("\n".join(requirements))
+    (base / "requirements.txt").write_text("\n".join(requirements), encoding="utf-8")
 
-    # .env.example
-    env_example = '''# ⚠️ Copiar a .env y completar con credenciales reales
-# PostgreSQL (históricos)
+    # .env.example — plantilla segura (sin credenciales)
+    env_example = '''# ==================================================
+# ⚠️  COPIAR A .env Y COMPLETAR CON CREDENCIALES REALES
+# Nunca incluir .env en control de versiones
+# ==================================================
+
+# PostgreSQL (históricos, eventos, mantenimiento)
 PG_HOST=localhost
 PG_PORT=5432
 PG_DB=dam_monitoring
@@ -160,58 +146,105 @@ ORA_USER=scada_reader
 ORA_PASSWORD=
 ORA_DSN=scada-server:1521/SCADADB
 
-# SQLite (modo offline)
+# SQLite (desarrollo local / modo offline)
 SQLITE_PATH=data/dams_local.db
 
-# Secretos
-API_SECRET_KEY=change-this-in-production-2025
+# Seguridad
+API_SECRET_KEY=change-in-production-2025
 '''
-    (base / ".env.example").write_text(env_example)
+    (base / ".env.example").write_text(env_example, encoding="utf-8")
 
-    print(f"✅ Estructura creada: {base}")
+    print(f"[OK] Estructura de directorios creada: {base}")
     return base
 
+
 def create_virtualenv(project_path: Path):
-    """Crea el entorno virtual."""
+    """Crea el entorno virtual en ./venv."""
     venv_path = project_path / "venv"
-    print(f"⚙️ Creando entorno virtual en: {venv_path}")
-    
+    print(f"[INFO] Creando entorno virtual en: {venv_path}")
+
     try:
         subprocess.run([sys.executable, "-m", "venv", str(venv_path)], check=True)
-        print(f"✅ Entorno virtual creado: {venv_path}")
+        print(f"[OK] Entorno virtual creado: {venv_path}")
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"Error al crear venv: {e}") from e
+        raise RuntimeError(f"Fallo al crear el entorno virtual: {e}") from e
+
 
 def install_requirements(project_path: Path):
-    """Instala dependencias en el entorno virtual."""
+    """Instala dependencias dentro del entorno virtual (sin actualizar pip)."""
     pip_exe = project_path / "venv" / ("Scripts/pip.exe" if os.name == "nt" else "bin/pip")
-    
+
     if not pip_exe.exists():
-        raise FileNotFoundError(f"No se encontró pip: {pip_exe}")
-    
-    print("📦 Instalando dependencias...")
-    subprocess.run([str(pip_exe), "install", "-r", str(project_path / "requirements.txt")], check=True)
-    print("✅ Dependencias instaladas.")
+        raise FileNotFoundError(f"pip no encontrado en: {pip_exe}")
+
+    print("[INFO] Instalando dependencias desde requirements.txt...")
+
+    # Ejecutar instalación directa — evita el bloqueo de pip en Windows
+    result = subprocess.run(
+        [str(pip_exe), "install", "-r", str(project_path / "requirements.txt")],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",  # Evita fallos de encoding al leer stdout/stderr
+    )
+
+    if result.returncode != 0:
+        # Filtrar advertencias no críticas (pip notices, deprecations)
+        critical_errors = [
+            line for line in result.stderr.splitlines()
+            if not line.startswith(("[notice]", "[", "WARNING:", "DEPRECATION:", "Requirement already satisfied"))
+        ]
+        if critical_errors:
+            print("[ERROR] Falló la instalación. Errores críticos:")
+            for line in critical_errors:
+                print(f"  → {line}")
+            raise RuntimeError("Instalación interrumpida por errores críticos.")
+        else:
+            # Solo advertencias no críticas: continuar
+            print("[OK] Dependencias instaladas (advertencias no críticas ignoradas).")
+            return
+
+    print("[OK] Todas las dependencias instaladas correctamente.")
+
 
 def main():
-    parser = argparse.ArgumentParser(description="🔧 Crea entorno para monitoreo de represas")
-    parser.add_argument("project_name", help="Nombre del proyecto (ej: dam-monitoring-system)")
+    parser = argparse.ArgumentParser(
+        description="🔧 Configurador automático para monitoreo de represas y estructuras críticas"
+    )
+    parser.add_argument(
+        "project_name",
+        help="Nombre del proyecto (ej: dam-monitoring-p1, scada-anomaly-detector)"
+    )
     args = parser.parse_args()
 
     try:
+        print("=" * 60)
+        print("INICIANDO CONFIGURACIÓN AUTOMÁTICA DEL PROYECTO")
+        print("=" * 60)
+
         project_path = create_project_structure(args.project_name)
         create_virtualenv(project_path)
         install_requirements(project_path)
 
-        print("\n" + "🎉" * 3 + " ¡PROYECTO LISTO! " + "🎉" * 3)
-        print(f"\n➡️  Siguiente paso:")
-        print(f"   cd {args.project_name}")
-        print(f"   venv\\Scripts\\activate")
-        print(f"   python -c \"import pandas; print('✅ pandas=', pandas.__version__)\"")
-        
+        print("\n" + "=" * 60)
+        print(" ✅ PROYECTO CONFIGURADO EXITOSAMENTE ")
+        print("=" * 60)
+        print(f"\nPasos siguientes:")
+        print(f"  cd {args.project_name}")
+        print(f"  venv\\Scripts\\activate          # Windows")
+        print(f"  source venv/bin/activate         # Linux/macOS")
+        print(f"\nVerificación rápida:")
+        print(f"  python -c \"import pandas, sklearn; print('✅ Entorno listo')\"")
+
+        print("\n[INFO] Este entorno soporta:")
+        print("  - Ingesta y procesamiento de datos SCADA")
+        print("  - Detección de anomalías en comportamiento estructural")
+        print("  - Generación automatizada de reportes técnicos (PDF)")
+        print("  - Dashboard interactivo para monitoreo en tiempo real")
+
     except Exception as e:
-        print(f"\n❌ Error: {e}", file=sys.stderr)
+        print(f"\n[ERROR FATAL] {e}", file=sys.stderr)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
