@@ -45,15 +45,15 @@ AppGAS/
 ## 📦 1. `requirements.txt`
 
 ```text
-Flask==3.0.3
-Flask-SQLAlchemy==3.1.1
-dash==2.17.1
-plotly==5.24.1
-pandas==2.2.2
-numpy==1.26.4
-scikit-learn==1.5.1
-python-dotenv==1.0.1
-gunicorn==22.0.0          # para producción
+Flask
+Flask-SQLAlchemy
+dash
+plotly
+pandas
+numpy
+scikit-learn
+python-dotenv
+gunicorn         # para producción
 ```
 
 > 💡 Ejecuta:  
