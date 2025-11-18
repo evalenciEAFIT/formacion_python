@@ -255,18 +255,19 @@ if __name__ == "__main__":
 ```cmd
 :: En CMD o PowerShell (Windows)
 cd Desktop
-python setup_project.py dam-monitoring-system
+python setup_project.py nombre_de_proyecto
 ```
 
 ## Paso 1.3: Activar el entorno
 
 ```cmd
-cd dam-monitoring-system
+cd nombre_de_proyecto
 venv\Scripts\activate
 ```
 
 **Verifica la instalación**:
 ```cmd
+(venv) pip list
 (venv) python -c "import pandas, fastapi, streamlit; print('✅ Todo instalado correctamente')"
 ```
 
